@@ -73,13 +73,18 @@ export default function Home() {
 
   return (
     <div className={styles.container}>
-      {/* Floating Wallet Button */}
-      <div className={styles.walletFloat}>
+      <header className={styles.headerWrapper}>
+        {/* Current Holder - Less important, in header */}
+        <div className={styles.holderSection}>
+          <div className={styles.holderLabel}>Holder</div>
+          <div className={styles.holderAddress}>{MOCK_GAME.holder.address}</div>
+        </div>
+
         <Wallet />
-      </div>
+      </header>
 
       <div className={styles.content}>
-        {/* Prize Display with Sponsor Ribbon */}
+        {/* Prize Display with Sponsor Ribbon - Priority 1 */}
         <div className={styles.prizeSection}>
           {/* Sponsor Ribbon */}
           <a
@@ -100,24 +105,18 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Timer */}
+        {/* Timer - Priority 2 (Critical) */}
         <div className={styles.timerSection}>
           <div className={styles.timerLabel}>Time Remaining</div>
           <div className={styles.timerValue}>{formatTime(timeRemaining)}</div>
         </div>
 
-        {/* Current Holder */}
-        <div className={styles.holderSection}>
-          <div className={styles.holderLabel}>Current Holder</div>
-          <div className={styles.holderAddress}>{MOCK_GAME.holder.address}</div>
-        </div>
-
-        {/* Claim Button */}
+        {/* Claim Button - Priority 3 (Main Action) */}
         <button className={styles.claimButton} onClick={handleClaim}>
           🎯 GRAB IT NOW!
         </button>
 
-        {/* Leaderboard */}
+        {/* Leaderboard - Scrollable if needed */}
         <div className={styles.leaderboard}>
           <h2 className={styles.leaderboardTitle}>🏅 Top Players</h2>
           <div className={styles.leaderboardList}>

@@ -1,5 +1,6 @@
 .container {
-  position: relative;
+  display: grid;
+  grid-template-rows: auto 1fr;
   min-height: 100vh;
   background: #0f0f1e;
   image-rendering: pixelated;
@@ -7,17 +8,14 @@
   image-rendering: crisp-edges;
 }
 
-.walletFloat {
-  position: fixed;
-  top: 1rem;
-  left: 1rem;
-  z-index: 100;
+.headerWrapper {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.75rem 1rem;
   background: #1a1a2e;
-  padding: 0.5rem;
-  border: 3px solid #00d4ff;
-  box-shadow:
-    0 4px 0 #0088aa,
-    0 4px 12px rgba(0, 212, 255, 0.3);
+  border-bottom: 4px solid #16213e;
 }
 
 .content {
@@ -30,7 +28,6 @@
   margin: 0 auto;
   width: 100%;
   gap: 1.5rem;
-  min-height: 100vh;
 }
 
 /* Prize Section */
@@ -157,14 +154,14 @@
 /* Timer Section */
 .timerSection {
   text-align: center;
-  padding: 1.5rem;
+  padding: 1rem;
   background: #2a0a0a;
   width: 100%;
-  border: 4px solid #ff0000;
+  border: 3px solid #ff0000;
   box-shadow:
     inset 0 0 0 2px #0f0f1e,
-    0 6px 0 #880000,
-    0 6px 12px rgba(255, 0, 0, 0.3);
+    0 4px 0 #880000,
+    0 4px 8px rgba(255, 0, 0, 0.3);
   animation: pulse 2s ease-in-out infinite;
 }
 
@@ -172,29 +169,29 @@
   0%, 100% {
     box-shadow:
       inset 0 0 0 2px #0f0f1e,
-      0 6px 0 #880000,
-      0 6px 12px rgba(255, 0, 0, 0.3);
+      0 4px 0 #880000,
+      0 4px 8px rgba(255, 0, 0, 0.3);
   }
   50% {
     box-shadow:
       inset 0 0 0 2px #0f0f1e,
-      0 6px 0 #880000,
-      0 6px 12px rgba(255, 0, 0, 0.6),
+      0 4px 0 #880000,
+      0 4px 8px rgba(255, 0, 0, 0.6),
       0 0 20px rgba(255, 0, 0, 0.5);
   }
 }
 
 .timerLabel {
-  font-size: 0.75rem;
+  font-size: 0.625rem;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: #ff6666;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.25rem;
   text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.8);
 }
 
 .timerValue {
-  font-size: clamp(1.5rem, 4vw, 2rem);
+  font-size: clamp(1.25rem, 4vw, 1.5rem);
   font-weight: 700;
   font-family: var(--font-source-code-pro), monospace;
   color: #ff0000;
@@ -203,36 +200,35 @@
     3px 3px 0 rgba(0, 0, 0, 0.8);
 }
 
-/* Current Holder */
+/* Current Holder - Compact for header */
 .holderSection {
-  text-align: center;
-  padding: 1rem;
+  text-align: left;
+  padding: 0.5rem;
   background: #0a2a0a;
-  width: 100%;
-  border: 4px solid #00ff00;
+  border: 3px solid #00ff00;
   box-shadow:
-    inset 0 0 0 2px #0f0f1e,
-    0 6px 0 #008800,
-    0 6px 12px rgba(0, 255, 0, 0.2);
+    0 3px 0 #008800,
+    0 3px 8px rgba(0, 255, 0, 0.2);
 }
 
 .holderLabel {
-  font-size: 0.75rem;
+  font-size: 0.625rem;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: #66ff66;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.25rem;
   text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.8);
 }
 
 .holderAddress {
-  font-size: 1.125rem;
+  font-size: 0.875rem;
   font-weight: 600;
   font-family: var(--font-source-code-pro), monospace;
   color: #00ff00;
-  text-shadow:
-    2px 2px 0 #008800,
-    3px 3px 0 rgba(0, 0, 0, 0.8);
+  text-shadow: 1px 1px 0 #008800;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Claim Button */
