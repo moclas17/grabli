@@ -73,13 +73,23 @@ export default function Home() {
 
   return (
     <div className={styles.container}>
-      <header className={styles.headerWrapper}>
+      {/* Floating Wallet Button */}
+      <div className={styles.walletFloat}>
         <Wallet />
-      </header>
+      </div>
 
       <div className={styles.content}>
-        {/* Prize Display */}
+        {/* Prize Display with Sponsor Ribbon */}
         <div className={styles.prizeSection}>
+          {/* Sponsor Ribbon */}
+          <a
+            href={MOCK_GAME.prize.sponsor.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.sponsorRibbon}
+            data-text={MOCK_GAME.prize.sponsor.name}
+          />
+
           <div className={styles.prizeIcon}>🏆</div>
           <h1 className={styles.prizeTitle}>{MOCK_GAME.prize.title}</h1>
           <div className={styles.prizeValue}>
@@ -121,21 +131,6 @@ export default function Home() {
               </div>
             ))}
           </div>
-        </div>
-
-        {/* Sponsor */}
-        <div className={styles.sponsorSection}>
-          <div className={styles.sponsorLabel}>Sponsored by</div>
-          <a
-            href={MOCK_GAME.prize.sponsor.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.sponsorLink}
-          >
-            <div className={styles.sponsorName}>
-              {MOCK_GAME.prize.sponsor.name}
-            </div>
-          </a>
         </div>
       </div>
     </div>
