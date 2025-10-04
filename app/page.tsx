@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { Wallet } from "@coinbase/onchainkit/wallet";
 import { useMiniKit } from "@coinbase/onchainkit/minikit";
 import styles from "./page.module.css";
@@ -74,10 +75,16 @@ export default function Home() {
   return (
     <div className={styles.container}>
       <header className={styles.headerWrapper}>
-        {/* Current Holder - Less important, in header */}
-        <div className={styles.holderSection}>
-          <div className={styles.holderLabel}>Holder</div>
-          <div className={styles.holderAddress}>{MOCK_GAME.holder.address}</div>
+        {/* Logo */}
+        <div className={styles.logoSection}>
+          <Image
+            src="/logo2.png"
+            alt="Grabli"
+            width={120}
+            height={40}
+            className={styles.logo}
+            priority
+          />
         </div>
 
         <Wallet />
@@ -109,6 +116,12 @@ export default function Home() {
         <div className={styles.timerSection}>
           <div className={styles.timerLabel}>Time Remaining</div>
           <div className={styles.timerValue}>{formatTime(timeRemaining)}</div>
+        </div>
+
+        {/* Current Holder */}
+        <div className={styles.holderSection}>
+          <div className={styles.holderLabel}>Current Holder</div>
+          <div className={styles.holderAddress}>{MOCK_GAME.holder.address}</div>
         </div>
 
         {/* Claim Button - Priority 3 (Main Action) */}
