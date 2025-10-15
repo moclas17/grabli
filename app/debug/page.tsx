@@ -16,7 +16,7 @@ export default function DebugPage() {
           {'\n'}
           ABI Length: {Array.isArray(GRABLI_ABI) ? GRABLI_ABI.length : 'N/A'}
           {'\n'}
-          Has getActiveGames: {Array.isArray(GRABLI_ABI) && GRABLI_ABI.some((item: any) => item.name === 'getActiveGames') ? 'Yes ✅' : 'No ❌'}
+          Has getActiveGames: {Array.isArray(GRABLI_ABI) && GRABLI_ABI.some((item) => 'name' in item && item.name === 'getActiveGames') ? 'Yes ✅' : 'No ❌'}
         </pre>
       </div>
 
