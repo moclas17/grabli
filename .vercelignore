@@ -1,0 +1,5 @@
+scripts/
+contracts/
+hardhat.config.ts
+*.md
+!README.md
