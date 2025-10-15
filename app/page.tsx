@@ -241,6 +241,40 @@ export default function Home() {
       </header>
 
       <div className={styles.content}>
+        {/* Game Ended - Show Winner Banner (when game is finished) */}
+        {gameState.finished && gameState.winner && gameState.winner !== '0x0000000000000000000000000000000000000000' && (
+          <div style={{
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            padding: '2rem',
+            borderRadius: '16px',
+            textAlign: 'center',
+            marginBottom: '2rem',
+            boxShadow: '0 8px 32px rgba(102, 126, 234, 0.4)'
+          }}>
+            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🎉🏆🎉</div>
+            <div style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '0.5rem', color: '#FFD700' }}>
+              WINNER!
+            </div>
+            <div style={{ fontSize: '1.25rem', marginBottom: '1rem', fontFamily: 'monospace', background: 'rgba(0,0,0,0.3)', padding: '0.75rem', borderRadius: '8px', display: 'inline-block' }}>
+              {gameState.winner}
+            </div>
+            {userAddress?.toLowerCase() === gameState.winner.toLowerCase() && (
+              <div style={{ marginTop: '1rem', padding: '1rem', background: 'rgba(255,215,0,0.2)', borderRadius: '8px', border: '2px solid #FFD700' }}>
+                <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>🎊 Congratulations! You Won! 🎊</div>
+                <div style={{ fontSize: '1rem', opacity: 0.9 }}>
+                  Prize: ${gameDetails.prizeValue?.toString() || '0'} {gameDetails.prizeCurrency || 'USD'}
+                </div>
+                <div style={{ fontSize: '0.875rem', marginTop: '0.5rem', opacity: 0.8 }}>
+                  Contact the sponsor to claim your prize
+                </div>
+              </div>
+            )}
+            <div style={{ marginTop: '1.5rem', fontSize: '0.875rem', opacity: 0.8 }}>
+              Game ended at {gameState.endAt ? new Date(Number(gameState.endAt) * 1000).toLocaleString() : 'N/A'}
+            </div>
+          </div>
+        )}
+
         {/* Prize Display with Sponsor Ribbon */}
         <div className={styles.prizeSection}>
           {/* Sponsor Ribbon */}
@@ -357,25 +391,6 @@ export default function Home() {
             fontSize: '0.875rem'
           }}>
             Error: {error.message}
-          </div>
-        )}
-
-        {/* Game Ended - Show Winner */}
-        {gameState.finished && gameState.winner !== '0x0000000000000000000000000000000000000000' && (
-          <div style={{
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            padding: '1.5rem',
-            borderRadius: '12px',
-            textAlign: 'center',
-            marginBottom: '1rem'
-          }}>
-            <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🎉</div>
-            <div style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>
-              Winner!
-            </div>
-            <div style={{ fontSize: '1rem' }}>
-              {shortenAddress(gameState.winner)}
-            </div>
           </div>
         )}
 
