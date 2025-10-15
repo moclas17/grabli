@@ -1,0 +1,520 @@
+"use client";
+import { useState } from "react";
+import { useAccount, useSwitchChain, useChainId } from "wagmi";
+import { Wallet } from "@coinbase/onchainkit/wallet";
+import Image from "next/image";
+import { useCreateGame, useForceCloseGame, useActiveGames } from "../../lib/hooks/useGrabliContract";
+import { baseSepolia } from "viem/chains";
+import styles from "../page.module.css";
+
+export default function AdminPage() {
+  const { address } = useAccount();
+  const chainId = useChainId();
+  const { switchChain } = useSwitchChain();
+
+  // Auto-detect active game
+  const { activeGameId, hasActiveGame } = useActiveGames();
+  const currentGameId = activeGameId || BigInt(0);
+
+  const { createGame, isPending, isConfirming, isSuccess, error, hash } = useCreateGame();
+  const {
+    forceCloseGame,
+    isPending: isClosePending,
+    isConfirming: isCloseConfirming,
+    isSuccess: isCloseSuccess,
+    error: closeError,
+    hash: closeHash
+  } = useForceCloseGame();
+
+  const [formData, setFormData] = useState({
+    prizeTitle: "Prize Pool",
+    prizeValue: "1",
+    prizeCurrency: "USD",
+    prizeDescription: "Winner takes all!",
+    sponsorName: "Acme Corp",
+    sponsorUrl: "https://acme.example",
+    sponsorLogo: "/sponsor-logo.png",
+    durationHours: "24",
+    claimCooldown: "10",
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!address) {
+      alert("Please connect your wallet first!");
+      return;
+    }
+
+    const durationSeconds = BigInt(Number(formData.durationHours) * 3600);
+    const cooldownSeconds = BigInt(Number(formData.claimCooldown));
+
+    createGame({
+      prizeTitle: formData.prizeTitle,
+      prizeValue: BigInt(formData.prizeValue),
+      prizeCurrency: formData.prizeCurrency,
+      prizeDescription: formData.prizeDescription,
+      sponsorName: formData.sponsorName,
+      sponsorUrl: formData.sponsorUrl,
+      sponsorLogo: formData.sponsorLogo,
+      duration: durationSeconds,
+      claimCooldown: cooldownSeconds,
+    });
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  return (
+    <div className={styles.container}>
+      <header className={styles.headerWrapper}>
+        <div className={styles.logoSection}>
+          <Image
+            src="/logo2.png"
+            alt="Grabli"
+            width={120}
+            height={40}
+            className={styles.logo}
+            priority
+          />
+        </div>
+        <Wallet />
+      </header>
+
+      <div className={styles.content}>
+        <div style={{
+          maxWidth: '600px',
+          margin: '0 auto',
+          padding: '2rem',
+          background: 'rgba(255, 255, 255, 0.05)',
+          borderRadius: '12px',
+        }}>
+          <h1 style={{ textAlign: 'center', marginBottom: '2rem' }}>
+            🎮 Create New Game
+          </h1>
+
+          {/* Wrong Network Warning */}
+          {address && chainId !== baseSepolia.id && (
+            <div style={{
+              background: '#f59e0b',
+              padding: '1rem',
+              borderRadius: '8px',
+              marginBottom: '1rem',
+              textAlign: 'center'
+            }}>
+              ⚠️ Wrong Network! You&apos;re on chain {chainId}, but need Base Sepolia (84532)
+              <br />
+              <button
+                onClick={() => switchChain({ chainId: baseSepolia.id })}
+                style={{
+                  marginTop: '0.5rem',
+                  padding: '0.5rem 1rem',
+                  background: 'white',
+                  color: '#f59e0b',
+                  border: 'none',
+                  borderRadius: '6px',
+                  fontWeight: 'bold',
+                  cursor: 'pointer'
+                }}
+              >
+                Switch to Base Sepolia
+              </button>
+            </div>
+          )}
+
+          {isSuccess && hash && (
+            <div style={{
+              background: '#10b981',
+              padding: '1rem',
+              borderRadius: '8px',
+              marginBottom: '1rem',
+              textAlign: 'center'
+            }}>
+              ✅ Game created successfully!
+              <br />
+              <a
+                href={`https://sepolia.basescan.org/tx/${hash}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: 'white', textDecoration: 'underline' }}
+              >
+                View transaction
+              </a>
+            </div>
+          )}
+
+          {error && (
+            <div style={{
+              background: '#ef4444',
+              padding: '1rem',
+              borderRadius: '8px',
+              marginBottom: '1rem',
+              textAlign: 'center'
+            }}>
+              ❌ Error: {error.message}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {/* Prize Info */}
+            <div>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
+                Prize Title
+              </label>
+              <input
+                type="text"
+                name="prizeTitle"
+                value={formData.prizeTitle}
+                onChange={handleChange}
+                required
+                style={{
+                  width: '100%',
+                  padding: '0.75rem',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(255,255,255,0.2)',
+                  background: 'rgba(0,0,0,0.3)',
+                  color: 'white',
+                }}
+              />
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1rem' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
+                  Prize Value
+                </label>
+                <input
+                  type="number"
+                  name="prizeValue"
+                  value={formData.prizeValue}
+                  onChange={handleChange}
+                  required
+                  min="0"
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    borderRadius: '8px',
+                    border: '1px solid rgba(255,255,255,0.2)',
+                    background: 'rgba(0,0,0,0.3)',
+                    color: 'white',
+                  }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
+                  Currency
+                </label>
+                <input
+                  type="text"
+                  name="prizeCurrency"
+                  value={formData.prizeCurrency}
+                  onChange={handleChange}
+                  required
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    borderRadius: '8px',
+                    border: '1px solid rgba(255,255,255,0.2)',
+                    background: 'rgba(0,0,0,0.3)',
+                    color: 'white',
+                  }}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
+                Prize Description
+              </label>
+              <textarea
+                name="prizeDescription"
+                value={formData.prizeDescription}
+                onChange={handleChange}
+                required
+                rows={3}
+                style={{
+                  width: '100%',
+                  padding: '0.75rem',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(255,255,255,0.2)',
+                  background: 'rgba(0,0,0,0.3)',
+                  color: 'white',
+                  resize: 'vertical',
+                }}
+              />
+            </div>
+
+            {/* Sponsor Info */}
+            <div style={{ marginTop: '1rem' }}>
+              <h3 style={{ marginBottom: '1rem' }}>Sponsor Information</h3>
+
+              <div>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
+                  Sponsor Name
+                </label>
+                <input
+                  type="text"
+                  name="sponsorName"
+                  value={formData.sponsorName}
+                  onChange={handleChange}
+                  required
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    borderRadius: '8px',
+                    border: '1px solid rgba(255,255,255,0.2)',
+                    background: 'rgba(0,0,0,0.3)',
+                    color: 'white',
+                  }}
+                />
+              </div>
+
+              <div style={{ marginTop: '1rem' }}>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
+                  Sponsor URL
+                </label>
+                <input
+                  type="url"
+                  name="sponsorUrl"
+                  value={formData.sponsorUrl}
+                  onChange={handleChange}
+                  required
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    borderRadius: '8px',
+                    border: '1px solid rgba(255,255,255,0.2)',
+                    background: 'rgba(0,0,0,0.3)',
+                    color: 'white',
+                  }}
+                />
+              </div>
+
+              <div style={{ marginTop: '1rem' }}>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
+                  Sponsor Logo URL
+                </label>
+                <input
+                  type="text"
+                  name="sponsorLogo"
+                  value={formData.sponsorLogo}
+                  onChange={handleChange}
+                  required
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    borderRadius: '8px',
+                    border: '1px solid rgba(255,255,255,0.2)',
+                    background: 'rgba(0,0,0,0.3)',
+                    color: 'white',
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Game Settings */}
+            <div style={{ marginTop: '1rem' }}>
+              <h3 style={{ marginBottom: '1rem' }}>Game Settings</h3>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
+                    Duration (hours)
+                  </label>
+                  <input
+                    type="number"
+                    name="durationHours"
+                    value={formData.durationHours}
+                    onChange={handleChange}
+                    required
+                    min="1"
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem',
+                      borderRadius: '8px',
+                      border: '1px solid rgba(255,255,255,0.2)',
+                      background: 'rgba(0,0,0,0.3)',
+                      color: 'white',
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
+                    Claim Cooldown (seconds)
+                  </label>
+                  <input
+                    type="number"
+                    name="claimCooldown"
+                    value={formData.claimCooldown}
+                    onChange={handleChange}
+                    required
+                    min="0"
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem',
+                      borderRadius: '8px',
+                      border: '1px solid rgba(255,255,255,0.2)',
+                      background: 'rgba(0,0,0,0.3)',
+                      color: 'white',
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={isPending || isConfirming || !address}
+              style={{
+                marginTop: '2rem',
+                padding: '1rem',
+                fontSize: '1.125rem',
+                fontWeight: 'bold',
+                borderRadius: '12px',
+                border: 'none',
+                background: !address
+                  ? '#6b7280'
+                  : isPending || isConfirming
+                  ? '#f59e0b'
+                  : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                color: 'white',
+                cursor: !address || isPending || isConfirming ? 'not-allowed' : 'pointer',
+                transition: 'all 0.3s',
+              }}
+            >
+              {!address
+                ? '🔗 Connect Wallet First'
+                : isPending || isConfirming
+                ? '⏳ Creating Game...'
+                : isSuccess
+                ? '✅ Game Created!'
+                : '🎮 Create Game'}
+            </button>
+          </form>
+
+          <div style={{
+            marginTop: '2rem',
+            padding: '1rem',
+            background: 'rgba(59, 130, 246, 0.1)',
+            borderRadius: '8px',
+            fontSize: '0.875rem'
+          }}>
+            <strong>Note:</strong> Only the contract owner can create games. Make sure you&apos;re connected
+            with the owner wallet.
+            {hasActiveGame && (
+              <>
+                <br /><br />
+                <strong>⚠️ Auto-Close:</strong> Creating a new game will automatically close the active game (ID: {currentGameId.toString()}) and determine its winner.
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Force Close Game Section */}
+        <div style={{
+          maxWidth: '600px',
+          margin: '2rem auto 0',
+          padding: '2rem',
+          background: 'rgba(239, 68, 68, 0.1)',
+          borderRadius: '12px',
+          border: '2px solid rgba(239, 68, 68, 0.3)'
+        }}>
+          <h2 style={{ textAlign: 'center', marginBottom: '1rem', color: '#ef4444' }}>
+            ⚠️ Force Close Game
+          </h2>
+
+          {isCloseSuccess && closeHash && (
+            <div style={{
+              background: '#10b981',
+              padding: '1rem',
+              borderRadius: '8px',
+              marginBottom: '1rem',
+              textAlign: 'center'
+            }}>
+              ✅ Game closed successfully!
+              <br />
+              <a
+                href={`https://sepolia.basescan.org/tx/${closeHash}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: 'white', textDecoration: 'underline' }}
+              >
+                View transaction
+              </a>
+            </div>
+          )}
+
+          {closeError && (
+            <div style={{
+              background: '#ef4444',
+              padding: '1rem',
+              borderRadius: '8px',
+              marginBottom: '1rem',
+              textAlign: 'center'
+            }}>
+              ❌ Error: {closeError.message}
+            </div>
+          )}
+
+          <p style={{ marginBottom: '1.5rem', textAlign: 'center' }}>
+            {hasActiveGame
+              ? `This will immediately end the active game (ID: ${currentGameId.toString()}) and determine the winner based on current standings.`
+              : 'No active game to close. Create a new game first.'}
+          </p>
+
+          <button
+            onClick={() => {
+              if (!hasActiveGame) {
+                alert('No active game to close!');
+                return;
+              }
+              if (confirm(`Are you sure you want to force close game ${currentGameId.toString()}? This cannot be undone!`)) {
+                forceCloseGame(currentGameId);
+              }
+            }}
+            disabled={!address || isClosePending || isCloseConfirming || chainId !== baseSepolia.id}
+            style={{
+              width: '100%',
+              padding: '1rem',
+              fontSize: '1.125rem',
+              fontWeight: 'bold',
+              borderRadius: '12px',
+              border: 'none',
+              background: !address || isClosePending || isCloseConfirming
+                ? '#6b7280'
+                : '#ef4444',
+              color: 'white',
+              cursor: !address || isClosePending || isCloseConfirming ? 'not-allowed' : 'pointer',
+              transition: 'all 0.3s',
+            }}
+          >
+            {!address
+              ? '🔗 Connect Wallet First'
+              : isClosePending || isCloseConfirming
+              ? '⏳ Closing Game...'
+              : isCloseSuccess
+              ? '✅ Game Closed!'
+              : '🛑 Force Close Game'}
+          </button>
+
+          <div style={{
+            marginTop: '1rem',
+            padding: '1rem',
+            background: 'rgba(239, 68, 68, 0.1)',
+            borderRadius: '8px',
+            fontSize: '0.875rem'
+          }}>
+            <strong>Warning:</strong> This will end the game immediately, even before the scheduled end time.
+            Use this for testing or emergency situations only.
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
