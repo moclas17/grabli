@@ -22,7 +22,7 @@ async function verifyContract() {
   // Load the exact Standard JSON Input that Hardhat used during compilation
   const buildInfoPath = join(
     process.cwd(),
-    "artifacts/build-info/solc-0_8_20-2b800ef2d3859cd87ff22ad4cf4064d763276493.json"
+    "artifacts/build-info/solc-0_8_20-41a2659f05ca9745bfacae0cf3a58992f3f2fb5e.json"
   );
   const buildInfo = JSON.parse(readFileSync(buildInfoPath, "utf-8"));
   const standardJsonInput = buildInfo.input;

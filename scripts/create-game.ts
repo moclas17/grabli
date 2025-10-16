@@ -40,6 +40,8 @@ async function main() {
   const prizeValue = process.env.PRIZE_VALUE || "1";
   const prizeCurrency = process.env.PRIZE_CURRENCY || "USD";
   const prizeDescription = process.env.PRIZE_DESCRIPTION || "Winner takes all!";
+  const prizeToken = process.env.PRIZE_TOKEN || "0x0000000000000000000000000000000000000000"; // No token by default
+  const prizeAmount = process.env.PRIZE_AMOUNT || "0"; // No token amount by default
   const sponsorName = process.env.SPONSOR_NAME || "Acme Corp";
   const sponsorUrl = process.env.SPONSOR_URL || "https://acme.example";
   const sponsorLogo = process.env.SPONSOR_LOGO || "/sponsor-logo.png";
@@ -50,6 +52,8 @@ async function main() {
   console.log("Prize Title:", prizeTitle);
   console.log("Prize Value:", prizeValue, prizeCurrency);
   console.log("Prize Description:", prizeDescription);
+  console.log("Prize Token:", prizeToken);
+  console.log("Prize Amount:", prizeAmount);
   console.log("Sponsor:", sponsorName);
   console.log("Duration:", duration, "seconds (", Number(duration) / 3600, "hours)");
   console.log("Claim Cooldown:", claimCooldown, "seconds");
@@ -60,6 +64,8 @@ async function main() {
     prizeValue,
     prizeCurrency,
     prizeDescription,
+    prizeToken,
+    prizeAmount,
     sponsorName,
     sponsorUrl,
     sponsorLogo,

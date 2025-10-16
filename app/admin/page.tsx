@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useAccount, useSwitchChain, useChainId } from "wagmi";
 import { Wallet } from "@coinbase/onchainkit/wallet";
 import Image from "next/image";
-import { useCreateGame, useForceCloseGame, useActiveGames } from "../../lib/hooks/useGrabliContract";
+import { useCreateGame, useForceCloseGame, useActiveGames, useFundGame } from "../../lib/hooks/useGrabliContract";
 import { baseSepolia } from "viem/chains";
 import styles from "../page.module.css";
 
@@ -31,6 +31,8 @@ export default function AdminPage() {
     prizeValue: "1",
     prizeCurrency: "USD",
     prizeDescription: "Winner takes all!",
+    prizeToken: "0x0000000000000000000000000000000000000000",
+    prizeAmount: "0",
     sponsorName: "Acme Corp",
     sponsorUrl: "https://acme.example",
     sponsorLogo: "/sponsor-logo.png",
@@ -54,6 +56,8 @@ export default function AdminPage() {
       prizeValue: BigInt(formData.prizeValue),
       prizeCurrency: formData.prizeCurrency,
       prizeDescription: formData.prizeDescription,
+      prizeToken: formData.prizeToken as `0x${string}`,
+      prizeAmount: BigInt(formData.prizeAmount),
       sponsorName: formData.sponsorName,
       sponsorUrl: formData.sponsorUrl,
       sponsorLogo: formData.sponsorLogo,
@@ -247,6 +251,73 @@ export default function AdminPage() {
                   resize: 'vertical',
                 }}
               />
+            </div>
+
+            {/* ERC20 Prize Token */}
+            <div style={{ marginTop: '1rem' }}>
+              <h3 style={{ marginBottom: '1rem' }}>💰 ERC20 Prize (Optional)</h3>
+
+              <div>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
+                  Token Address
+                </label>
+                <input
+                  type="text"
+                  name="prizeToken"
+                  value={formData.prizeToken}
+                  onChange={handleChange}
+                  placeholder="0x0000... (leave as 0x0 for no token prize)"
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    borderRadius: '8px',
+                    border: '1px solid rgba(255,255,255,0.2)',
+                    background: 'rgba(0,0,0,0.3)',
+                    color: 'white',
+                    fontFamily: 'monospace',
+                  }}
+                />
+                <small style={{ display: 'block', marginTop: '0.5rem', opacity: 0.7 }}>
+                  USDC on Base Sepolia: 0x036CbD53842c5426634e7929541eC2318f3dCF7e
+                </small>
+              </div>
+
+              <div style={{ marginTop: '1rem' }}>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
+                  Token Amount (in smallest unit)
+                </label>
+                <input
+                  type="text"
+                  name="prizeAmount"
+                  value={formData.prizeAmount}
+                  onChange={handleChange}
+                  placeholder="0 (use 0 for no token prize)"
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    borderRadius: '8px',
+                    border: '1px solid rgba(255,255,255,0.2)',
+                    background: 'rgba(0,0,0,0.3)',
+                    color: 'white',
+                  }}
+                />
+                <small style={{ display: 'block', marginTop: '0.5rem', opacity: 0.7 }}>
+                  For USDC: 1000000 = 1 USDC (6 decimals)
+                </small>
+              </div>
+
+              <div style={{
+                marginTop: '1rem',
+                padding: '1rem',
+                background: 'rgba(59, 130, 246, 0.1)',
+                borderRadius: '8px',
+                fontSize: '0.875rem'
+              }}>
+                <strong>⚠️ Important:</strong> Game will be created but NOT started until you fund it with the specified tokens.
+                After creating, you&apos;ll need to:
+                <br />1. Approve the contract to spend your tokens
+                <br />2. Call fundGame() to deposit tokens and start the game
+              </div>
             </div>
 
             {/* Sponsor Info */}

@@ -5,9 +5,20 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 /**
+ * @title IERC20
+ * @dev Interface for ERC20 token interactions
+ */
+interface IERC20 {
+    function transfer(address to, uint256 amount) external returns (bool);
+    function transferFrom(address from, address to, uint256 amount) external returns (bool);
+    function balanceOf(address account) external view returns (uint256);
+}
+
+/**
  * @title Grabli
  * @dev A competitive game where players claim a prize and accumulate holding time.
  * The winner is the player who holds the prize for the longest time.
+ * Supports ERC20 token prizes that are automatically transferred to winners.
  */
 contract Grabli is Ownable, ReentrancyGuard {
     struct Game {
@@ -15,6 +26,9 @@ contract Grabli is Ownable, ReentrancyGuard {
         uint256 prizeValue;
         string prizeCurrency;
         string prizeDescription;
+        address prizeToken;        // ERC20 token address for prize (address(0) = no token prize)
+        uint256 prizeAmount;       // Amount of ERC20 tokens for prize
+        address sponsor;           // Sponsor who created and funds the game
         string sponsorName;
         string sponsorUrl;
         string sponsorLogo;
@@ -46,15 +60,26 @@ contract Grabli is Ownable, ReentrancyGuard {
     // Game ID => Player Address => bool (to check if player already in array)
     mapping(uint256 => mapping(address => bool)) public hasPlayed;
 
+    // Game ID => Duration in seconds (stored for funding phase)
+    mapping(uint256 => uint256) public gameDuration;
+
     uint256 public gameCount;
     uint256 public constant DEFAULT_COOLDOWN = 10; // 10 seconds default cooldown
 
     event GameCreated(
         uint256 indexed gameId,
         string prizeTitle,
+        address prizeToken,
+        uint256 prizeAmount,
+        address sponsor
+    );
+
+    event GameFunded(
+        uint256 indexed gameId,
+        address prizeToken,
+        uint256 prizeAmount,
         uint256 startAt,
-        uint256 endAt,
-        string sponsorName
+        uint256 endAt
     );
 
     event Claimed(
@@ -71,15 +96,25 @@ contract Grabli is Ownable, ReentrancyGuard {
         uint256 totalSeconds
     );
 
+    event PrizeClaimed(
+        uint256 indexed gameId,
+        address indexed winner,
+        address prizeToken,
+        uint256 amount
+    );
+
     constructor() Ownable(msg.sender) {}
 
     /**
-     * @dev Creates a new game with specified parameters
+     * @dev Creates a new game with specified parameters (does NOT start the game)
      * @notice Automatically closes any active games before creating a new one
+     * @notice Game will start once fundGame() is called
      * @param _prizeTitle Title of the prize
-     * @param _prizeValue Value of the prize
-     * @param _prizeCurrency Currency of the prize (e.g., "USD")
+     * @param _prizeValue Value of the prize (display only)
+     * @param _prizeCurrency Currency of the prize (e.g., "USD", display only)
      * @param _prizeDescription Description of the prize
+     * @param _prizeToken Address of ERC20 token for prize (address(0) = no token prize)
+     * @param _prizeAmount Amount of ERC20 tokens for prize
      * @param _sponsorName Name of the sponsor
      * @param _sponsorUrl URL of the sponsor
      * @param _sponsorLogo Logo URL of the sponsor
@@ -91,6 +126,8 @@ contract Grabli is Ownable, ReentrancyGuard {
         uint256 _prizeValue,
         string memory _prizeCurrency,
         string memory _prizeDescription,
+        address _prizeToken,
+        uint256 _prizeAmount,
         string memory _sponsorName,
         string memory _sponsorUrl,
         string memory _sponsorLogo,
@@ -104,19 +141,20 @@ contract Grabli is Ownable, ReentrancyGuard {
         _closeAllActiveGames();
 
         uint256 gameId = gameCount++;
-        uint256 startAt = block.timestamp;
-        uint256 endAt = startAt + _duration;
 
         games[gameId] = Game({
             prizeTitle: _prizeTitle,
             prizeValue: _prizeValue,
             prizeCurrency: _prizeCurrency,
             prizeDescription: _prizeDescription,
+            prizeToken: _prizeToken,
+            prizeAmount: _prizeAmount,
+            sponsor: msg.sender,
             sponsorName: _sponsorName,
             sponsorUrl: _sponsorUrl,
             sponsorLogo: _sponsorLogo,
-            startAt: startAt,
-            endAt: endAt,
+            startAt: 0,  // NOT started yet - will be set when funded
+            endAt: 0,    // NOT started yet - will be set when funded
             holder: address(0),
             sinceTs: 0,
             finished: false,
@@ -125,8 +163,36 @@ contract Grabli is Ownable, ReentrancyGuard {
             claimCooldown: _claimCooldown > 0 ? _claimCooldown : DEFAULT_COOLDOWN
         });
 
-        emit GameCreated(gameId, _prizeTitle, startAt, endAt, _sponsorName);
+        // Store duration for when game is funded
+        gameDuration[gameId] = _duration;
+
+        emit GameCreated(gameId, _prizeTitle, _prizeToken, _prizeAmount, msg.sender);
         return gameId;
+    }
+
+    /**
+     * @dev Fund the game with ERC20 tokens and start it
+     * @notice Only the sponsor can fund the game
+     * @notice Game must not be started yet (startAt == 0)
+     * @param _gameId ID of the game to fund
+     */
+    function fundGame(uint256 _gameId) external nonReentrant {
+        Game storage game = games[_gameId];
+
+        require(_gameId < gameCount, "Game does not exist");
+        require(game.startAt == 0, "Game already funded/started");
+        require(game.prizeToken != address(0), "Game has no token prize");
+        require(game.prizeAmount > 0, "Game has no prize amount");
+        require(msg.sender == game.sponsor, "Only sponsor can fund");
+
+        // Transfer tokens from sponsor to contract
+        IERC20(game.prizeToken).transferFrom(msg.sender, address(this), game.prizeAmount);
+
+        // START the game now that it's funded
+        game.startAt = block.timestamp;
+        game.endAt = block.timestamp + gameDuration[_gameId];
+
+        emit GameFunded(_gameId, game.prizeToken, game.prizeAmount, game.startAt, game.endAt);
     }
 
     /**
@@ -215,6 +281,12 @@ contract Grabli is Ownable, ReentrancyGuard {
         game.winner = winner;
         game.winnerTotalSeconds = maxSeconds;
 
+        // Transfer prize to winner if game has ERC20 prize
+        if (game.prizeToken != address(0) && game.prizeAmount > 0 && winner != address(0)) {
+            IERC20(game.prizeToken).transfer(winner, game.prizeAmount);
+            emit PrizeClaimed(_gameId, winner, game.prizeToken, game.prizeAmount);
+        }
+
         emit GameFinished(_gameId, winner, maxSeconds);
     }
 
@@ -253,6 +325,12 @@ contract Grabli is Ownable, ReentrancyGuard {
         game.winner = winner;
         game.winnerTotalSeconds = maxSeconds;
         game.endAt = block.timestamp; // Update endAt to current time
+
+        // Transfer prize to winner if game has ERC20 prize
+        if (game.prizeToken != address(0) && game.prizeAmount > 0 && winner != address(0)) {
+            IERC20(game.prizeToken).transfer(winner, game.prizeAmount);
+            emit PrizeClaimed(_gameId, winner, game.prizeToken, game.prizeAmount);
+        }
 
         emit GameFinished(_gameId, winner, maxSeconds);
     }
@@ -297,6 +375,12 @@ contract Grabli is Ownable, ReentrancyGuard {
             game.winnerTotalSeconds = maxSeconds;
             game.endAt = block.timestamp; // Update endAt to current time
 
+            // Transfer prize to winner if game has ERC20 prize
+            if (game.prizeToken != address(0) && game.prizeAmount > 0 && winner != address(0)) {
+                IERC20(game.prizeToken).transfer(winner, game.prizeAmount);
+                emit PrizeClaimed(i, winner, game.prizeToken, game.prizeAmount);
+            }
+
             emit GameFinished(i, winner, maxSeconds);
         }
     }
@@ -315,7 +399,9 @@ contract Grabli is Ownable, ReentrancyGuard {
         address holder,
         uint256 currentHolderSeconds,
         bool finished,
-        address winner
+        address winner,
+        address prizeToken,
+        uint256 prizeAmount
     ) {
         Game storage game = games[_gameId];
 
@@ -335,7 +421,9 @@ contract Grabli is Ownable, ReentrancyGuard {
             game.holder,
             holderSeconds,
             game.finished,
-            game.winner
+            game.winner,
+            game.prizeToken,
+            game.prizeAmount
         );
     }
 
@@ -411,7 +499,10 @@ contract Grabli is Ownable, ReentrancyGuard {
         string memory sponsorLogo,
         uint256 startAt,
         uint256 endAt,
-        bool finished
+        bool finished,
+        address prizeToken,
+        uint256 prizeAmount,
+        address sponsor
     ) {
         Game storage game = games[_gameId];
 
@@ -425,7 +516,10 @@ contract Grabli is Ownable, ReentrancyGuard {
             game.sponsorLogo,
             game.startAt,
             game.endAt,
-            game.finished
+            game.finished,
+            game.prizeToken,
+            game.prizeAmount,
+            game.sponsor
         );
     }
 

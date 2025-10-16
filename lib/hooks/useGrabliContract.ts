@@ -61,6 +61,8 @@ export function useGameState(gameId: bigint = CURRENT_GAME_ID) {
       currentHolderSeconds: data[7] as bigint,
       finished: data[8] as boolean,
       winner: data[9] as Address,
+      prizeToken: data[10] as Address,
+      prizeAmount: data[11] as bigint,
     };
   } else if (data) {
     // If it's already an object, use it as is
@@ -102,6 +104,9 @@ export function useGameDetails(gameId: bigint = CURRENT_GAME_ID) {
       startAt: data[7] as bigint,
       endAt: data[8] as bigint,
       finished: data[9] as boolean,
+      prizeToken: data[10] as Address,
+      prizeAmount: data[11] as bigint,
+      sponsor: data[12] as Address,
     };
   } else if (data) {
     // If it's already an object, use it as is
@@ -231,6 +236,8 @@ export function useCreateGame() {
     prizeValue: bigint;
     prizeCurrency: string;
     prizeDescription: string;
+    prizeToken: Address;
+    prizeAmount: bigint;
     sponsorName: string;
     sponsorUrl: string;
     sponsorLogo: string;
@@ -246,6 +253,8 @@ export function useCreateGame() {
         params.prizeValue,
         params.prizeCurrency,
         params.prizeDescription,
+        params.prizeToken,
+        params.prizeAmount,
         params.sponsorName,
         params.sponsorUrl,
         params.sponsorLogo,
@@ -262,6 +271,34 @@ export function useCreateGame() {
 
   return {
     createGame,
+    isPending,
+    isConfirming,
+    isSuccess,
+    error,
+    hash,
+  };
+}
+
+// Hook to fund a game with ERC20 tokens (sponsor only)
+export function useFundGame() {
+  const { writeContract, data: hash, isPending, error } = useWriteContract();
+
+  const fundGame = (gameId: bigint = CURRENT_GAME_ID) => {
+    writeContract({
+      address: getGrabliAddress(baseSepolia.id),
+      abi: GRABLI_ABI,
+      functionName: 'fundGame',
+      args: [gameId],
+      chainId: baseSepolia.id,
+    });
+  };
+
+  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
+    hash,
+  });
+
+  return {
+    fundGame,
     isPending,
     isConfirming,
     isSuccess,

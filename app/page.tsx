@@ -112,6 +112,14 @@ export default function Home() {
     claim(currentGameId);
   };
 
+  const handleRefresh = () => {
+    refetchState();
+    refetchLeaderboard();
+    if (userAddress) {
+      refetchPlayerStats();
+    }
+  };
+
   // Loading state
   // If we're still detecting active games, show loading
   // OR if we have an active game but still loading its data, show loading
@@ -131,7 +139,30 @@ export default function Home() {
               priority
             />
           </div>
-          <Wallet />
+          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+            <button
+              onClick={handleRefresh}
+              style={{
+                padding: '0.5rem 1rem',
+                fontSize: '1rem',
+                borderRadius: '8px',
+                border: 'none',
+                background: 'rgba(255, 255, 255, 0.1)',
+                color: 'white',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+              }}
+            >
+              🔄 Refresh
+            </button>
+            <Wallet />
+          </div>
         </header>
         <div className={styles.content}>
           <div style={{ textAlign: 'center', padding: '2rem' }}>
@@ -166,7 +197,30 @@ export default function Home() {
               priority
             />
           </div>
-          <Wallet />
+          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+            <button
+              onClick={handleRefresh}
+              style={{
+                padding: '0.5rem 1rem',
+                fontSize: '1rem',
+                borderRadius: '8px',
+                border: 'none',
+                background: 'rgba(255, 255, 255, 0.1)',
+                color: 'white',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+              }}
+            >
+              🔄 Refresh
+            </button>
+            <Wallet />
+          </div>
         </header>
         <div className={styles.content}>
           <div style={{
@@ -223,7 +277,6 @@ export default function Home() {
   const isCurrentHolder = userAddress && gameState.holder &&
     userAddress.toLowerCase() === gameState.holder.toLowerCase();
 
-
   return (
     <div className={styles.container}>
       <header className={styles.headerWrapper}>
@@ -237,7 +290,30 @@ export default function Home() {
             priority
           />
         </div>
-        <Wallet />
+        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          <button
+            onClick={handleRefresh}
+            style={{
+              padding: '0.5rem 1rem',
+              fontSize: '1rem',
+              borderRadius: '8px',
+              border: 'none',
+              background: 'rgba(255, 255, 255, 0.1)',
+              color: 'white',
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+            }}
+          >
+            🔄 Refresh
+          </button>
+          <Wallet />
+        </div>
       </header>
 
       <div className={styles.content}>

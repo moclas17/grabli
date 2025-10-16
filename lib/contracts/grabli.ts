@@ -26,6 +26,8 @@ export interface GameState {
   currentHolderSeconds: bigint;
   finished: boolean;
   winner: Address;
+  prizeToken: Address;
+  prizeAmount: bigint;
 }
 
 export interface GameDetails {
@@ -39,6 +41,9 @@ export interface GameDetails {
   startAt: bigint;
   endAt: bigint;
   finished: boolean;
+  prizeToken: Address;
+  prizeAmount: bigint;
+  sponsor: Address;
 }
 
 export interface PlayerStats {
