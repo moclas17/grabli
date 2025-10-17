@@ -1,6 +1,6 @@
 "use client";
 import { useActiveGames, useGameState, useGameDetails } from "../../lib/hooks/useGrabliContract";
-import { GRABLI_ABI } from "../../lib/contracts";
+import { GRABLI_ABI } from "@/lib/contracts";
 
 export default function DebugPage() {
   const { activeGames, activeGameId, hasActiveGame, isLoading, isError } = useActiveGames();
