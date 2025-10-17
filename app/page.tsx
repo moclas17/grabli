@@ -13,7 +13,7 @@ import {
   useLeaderboard,
   useClaim,
   usePlayerStats,
-} from "../lib/hooks/useGrabliContract";
+} from "../lib/grabliContract";
 
 export default function Home() {
   const { setMiniAppReady, isMiniAppReady } = useMiniKit();
