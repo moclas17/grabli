@@ -9,7 +9,7 @@ import {
   GameDetails,
   PlayerStats,
   LeaderboardEntry
-} from '@/lib/contracts';
+} from '../contracts/grabli';
 
 // Hook to get active games
 export function useActiveGames() {
