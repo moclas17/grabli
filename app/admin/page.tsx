@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useAccount, useSwitchChain, useChainId } from "wagmi";
 import { Wallet } from "@coinbase/onchainkit/wallet";
 import Image from "next/image";
-import { useCreateGame, useForceCloseGame, useActiveGames } from "../../src/hooks/useGrabliContract";
+import { useCreateGame, useForceCloseGame, useActiveGames } from "../../lib/hooks/useGrabliContract";
 import { baseSepolia } from "viem/chains";
 import styles from "../page.module.css";
 
