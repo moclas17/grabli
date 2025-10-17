@@ -1,7 +1,7 @@
 import { Address, Abi } from 'viem';
-import GrabliArtifact from './GrabliABI.json';
+import { GRABLI_ABI as ABI } from './grabliABI';
 
-export const GRABLI_ABI = GrabliArtifact.abi as Abi;
+export const GRABLI_ABI = ABI as Abi;
 
 export type GrabliContractAddress = Address;
 
