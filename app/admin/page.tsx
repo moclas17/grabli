@@ -3,7 +3,8 @@ import { useState } from "react";
 import { useAccount, useSwitchChain, useChainId } from "wagmi";
 import { Wallet } from "@coinbase/onchainkit/wallet";
 import Image from "next/image";
-import { useCreateGame, useForceCloseGame, useActiveGames, useFundGame } from "../../lib/hooks/useGrabliContract";
+import { useCreateGame, useForceCloseGame, useActiveGames, useFundGame, useGameDetails, useApproveERC20, useERC20Allowance } from "../../lib/hooks/useGrabliContract";
+import { getGrabliAddress } from "../../lib/contracts/grabli";
 import { baseSepolia } from "viem/chains";
 import styles from "../page.module.css";
 
@@ -25,6 +26,33 @@ export default function AdminPage() {
     error: closeError,
     hash: closeHash
   } = useForceCloseGame();
+
+  // Fund game hooks
+  const { gameDetails } = useGameDetails(currentGameId);
+  const {
+    fundGame,
+    isPending: isFundPending,
+    isConfirming: isFundConfirming,
+    isSuccess: isFundSuccess,
+    error: fundError,
+    hash: fundHash
+  } = useFundGame();
+
+  const {
+    approve,
+    isPending: isApprovePending,
+    isConfirming: isApproveConfirming,
+    isSuccess: isApproveSuccess,
+    error: approveError,
+    hash: approveHash
+  } = useApproveERC20();
+
+  const contractAddress = getGrabliAddress(baseSepolia.id);
+  const { allowance, refetch: refetchAllowance } = useERC20Allowance(
+    gameDetails?.prizeToken,
+    address,
+    contractAddress
+  );
 
   const [formData, setFormData] = useState({
     prizeTitle: "Prize Pool",
@@ -585,6 +613,204 @@ export default function AdminPage() {
             Use this for testing or emergency situations only.
           </div>
         </div>
+
+        {/* Fund Game Section */}
+        {hasActiveGame && gameDetails && gameDetails.startAt === BigInt(0) && gameDetails.prizeToken !== '0x0000000000000000000000000000000000000000' && (
+          <div style={{
+            maxWidth: '600px',
+            margin: '2rem auto 0',
+            padding: '2rem',
+            background: 'rgba(217, 119, 6, 0.1)',
+            borderRadius: '12px',
+            border: '2px solid rgba(217, 119, 6, 0.3)'
+          }}>
+            <h2 style={{ textAlign: 'center', marginBottom: '1rem', color: '#d97706' }}>
+              💰 Fund Game & Start
+            </h2>
+
+            <div style={{
+              background: 'rgba(0,0,0,0.3)',
+              padding: '1rem',
+              borderRadius: '8px',
+              marginBottom: '1.5rem',
+              fontSize: '0.875rem'
+            }}>
+              <strong>Game ID {currentGameId.toString()} - Pending Funding</strong>
+              <br /><br />
+              <strong>Prize Token:</strong> {gameDetails.prizeToken}
+              <br />
+              <strong>Prize Amount:</strong> {gameDetails.prizeAmount.toString()}
+              <br />
+              <strong>Current Allowance:</strong> {allowance?.toString() || '0'}
+              <br />
+              <strong>Status:</strong> {gameDetails.startAt === BigInt(0) ? '⏳ NOT STARTED' : '✅ ACTIVE'}
+            </div>
+
+            {/* Approve Success */}
+            {isApproveSuccess && approveHash && (
+              <div style={{
+                background: '#10b981',
+                padding: '1rem',
+                borderRadius: '8px',
+                marginBottom: '1rem',
+                textAlign: 'center'
+              }}>
+                ✅ Tokens approved successfully!
+                <br />
+                <a
+                  href={`https://sepolia.basescan.org/tx/${approveHash}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: 'white', textDecoration: 'underline' }}
+                >
+                  View transaction
+                </a>
+                <br />
+                <small>Now click &ldquo;Fund & Start Game&rdquo; below</small>
+              </div>
+            )}
+
+            {/* Fund Success */}
+            {isFundSuccess && fundHash && (
+              <div style={{
+                background: '#10b981',
+                padding: '1rem',
+                borderRadius: '8px',
+                marginBottom: '1rem',
+                textAlign: 'center'
+              }}>
+                🎉 Game funded and started successfully!
+                <br />
+                <a
+                  href={`https://sepolia.basescan.org/tx/${fundHash}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: 'white', textDecoration: 'underline' }}
+                >
+                  View transaction
+                </a>
+              </div>
+            )}
+
+            {/* Errors */}
+            {approveError && (
+              <div style={{
+                background: '#ef4444',
+                padding: '1rem',
+                borderRadius: '8px',
+                marginBottom: '1rem',
+                textAlign: 'center'
+              }}>
+                ❌ Approve Error: {approveError.message}
+              </div>
+            )}
+
+            {fundError && (
+              <div style={{
+                background: '#ef4444',
+                padding: '1rem',
+                borderRadius: '8px',
+                marginBottom: '1rem',
+                textAlign: 'center'
+              }}>
+                ❌ Fund Error: {fundError.message}
+              </div>
+            )}
+
+            {/* Step 1: Approve */}
+            {(!allowance || allowance < gameDetails.prizeAmount) && (
+              <button
+                onClick={() => {
+                  if (!gameDetails.prizeToken || !gameDetails.prizeAmount) {
+                    alert('Invalid game details');
+                    return;
+                  }
+                  approve(gameDetails.prizeToken as `0x${string}`, contractAddress as `0x${string}`, gameDetails.prizeAmount);
+                }}
+                disabled={!address || isApprovePending || isApproveConfirming || chainId !== baseSepolia.id}
+                style={{
+                  width: '100%',
+                  padding: '1rem',
+                  fontSize: '1.125rem',
+                  fontWeight: 'bold',
+                  borderRadius: '12px',
+                  border: 'none',
+                  background: !address || isApprovePending || isApproveConfirming
+                    ? '#6b7280'
+                    : '#f59e0b',
+                  color: 'white',
+                  cursor: !address || isApprovePending || isApproveConfirming ? 'not-allowed' : 'pointer',
+                  transition: 'all 0.3s',
+                  marginBottom: '1rem'
+                }}
+              >
+                {!address
+                  ? '🔗 Connect Wallet First'
+                  : isApprovePending || isApproveConfirming
+                  ? '⏳ Approving...'
+                  : isApproveSuccess
+                  ? '✅ Approved!'
+                  : '🔓 Step 1: Approve Tokens'}
+              </button>
+            )}
+
+            {/* Step 2: Fund Game */}
+            <button
+              onClick={() => {
+                fundGame(currentGameId);
+                // Refetch allowance after funding
+                setTimeout(() => refetchAllowance(), 2000);
+              }}
+              disabled={
+                !address ||
+                isFundPending ||
+                isFundConfirming ||
+                chainId !== baseSepolia.id ||
+                !allowance ||
+                allowance < gameDetails.prizeAmount
+              }
+              style={{
+                width: '100%',
+                padding: '1rem',
+                fontSize: '1.125rem',
+                fontWeight: 'bold',
+                borderRadius: '12px',
+                border: 'none',
+                background: !address || isFundPending || isFundConfirming || !allowance || allowance < gameDetails.prizeAmount
+                  ? '#6b7280'
+                  : 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                color: 'white',
+                cursor: !address || isFundPending || isFundConfirming || !allowance || allowance < gameDetails.prizeAmount ? 'not-allowed' : 'pointer',
+                transition: 'all 0.3s',
+              }}
+            >
+              {!address
+                ? '🔗 Connect Wallet First'
+                : !allowance || allowance < gameDetails.prizeAmount
+                ? '🔒 Approve tokens first'
+                : isFundPending || isFundConfirming
+                ? '⏳ Funding Game...'
+                : isFundSuccess
+                ? '✅ Game Started!'
+                : '💰 Step 2: Fund & Start Game'}
+            </button>
+
+            <div style={{
+              marginTop: '1rem',
+              padding: '1rem',
+              background: 'rgba(217, 119, 6, 0.1)',
+              borderRadius: '8px',
+              fontSize: '0.875rem'
+            }}>
+              <strong>How it works:</strong>
+              <br />1. Click &ldquo;Approve Tokens&rdquo; to give the contract permission
+              <br />2. Click &ldquo;Fund & Start Game&rdquo; to deposit tokens and start the game
+              <br />3. Game will start immediately after funding
+              <br /><br />
+              <strong>Note:</strong> Only the sponsor who created the game can fund it.
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

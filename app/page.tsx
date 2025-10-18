@@ -8,6 +8,7 @@ import { baseSepolia } from "viem/chains";
 import styles from "./page.module.css";
 import {
   useActiveGames,
+  useGameCount,
   useGameState,
   useGameDetails,
   useLeaderboard,
@@ -24,9 +25,12 @@ export default function Home() {
 
   // Auto-detect active game
   const { activeGameId, hasActiveGame, isLoading: isLoadingActiveGames } = useActiveGames();
+  const { gameCount } = useGameCount();
 
-  // Use the detected active game ID directly
-  const currentGameId = activeGameId !== null ? activeGameId : BigInt(0);
+  // Use the detected active game ID, or if no active game, show the last created game
+  const currentGameId = hasActiveGame && activeGameId !== null
+    ? activeGameId
+    : (gameCount > BigInt(0) ? gameCount - BigInt(1) : BigInt(0));
 
   // Fetch game data from contract using detected active game
   const { gameState, isLoading: isLoadingState, refetch: refetchState } = useGameState(currentGameId);
@@ -143,23 +147,30 @@ export default function Home() {
             <button
               onClick={handleRefresh}
               style={{
-                padding: '0.5rem 1rem',
-                fontSize: '1rem',
-                borderRadius: '8px',
+                width: '48px',
+                height: '48px',
+                borderRadius: '12px',
                 border: 'none',
-                background: 'rgba(255, 255, 255, 0.1)',
+                background: '#1a1a1a',
                 color: 'white',
+                fontSize: '1.25rem',
                 cursor: 'pointer',
                 transition: 'all 0.2s',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
+                e.currentTarget.style.background = '#2a2a2a';
+                e.currentTarget.style.transform = 'scale(1.05)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+                e.currentTarget.style.background = '#1a1a1a';
+                e.currentTarget.style.transform = 'scale(1)';
               }}
+              title="Refresh"
             >
-              🔄 Refresh
+              🔄
             </button>
             <Wallet />
           </div>
@@ -201,23 +212,30 @@ export default function Home() {
             <button
               onClick={handleRefresh}
               style={{
-                padding: '0.5rem 1rem',
-                fontSize: '1rem',
-                borderRadius: '8px',
+                width: '48px',
+                height: '48px',
+                borderRadius: '12px',
                 border: 'none',
-                background: 'rgba(255, 255, 255, 0.1)',
+                background: '#1a1a1a',
                 color: 'white',
+                fontSize: '1.25rem',
                 cursor: 'pointer',
                 transition: 'all 0.2s',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
+                e.currentTarget.style.background = '#2a2a2a';
+                e.currentTarget.style.transform = 'scale(1.05)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+                e.currentTarget.style.background = '#1a1a1a';
+                e.currentTarget.style.transform = 'scale(1)';
               }}
+              title="Refresh"
             >
-              🔄 Refresh
+              🔄
             </button>
             <Wallet />
           </div>
@@ -294,23 +312,30 @@ export default function Home() {
           <button
             onClick={handleRefresh}
             style={{
-              padding: '0.5rem 1rem',
-              fontSize: '1rem',
-              borderRadius: '8px',
+              width: '48px',
+              height: '48px',
+              borderRadius: '12px',
               border: 'none',
-              background: 'rgba(255, 255, 255, 0.1)',
+              background: 'oklch(27.9% .041 260.031)',
               color: 'white',
+              fontSize: '1.25rem',
               cursor: 'pointer',
               transition: 'all 0.2s',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
+              e.currentTarget.style.background = 'oklch(37.9% .041 260.031)';
+              e.currentTarget.style.transform = 'scale(1.05)';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+              e.currentTarget.style.background = 'oklch(27.9% .041 260.031)';
+              e.currentTarget.style.transform = 'scale(1)';
             }}
+            title="Refresh"
           >
-            🔄 Refresh
+            🔄
           </button>
           <Wallet />
         </div>
@@ -320,32 +345,59 @@ export default function Home() {
         {/* Game Ended - Show Winner Banner (when game is finished) */}
         {gameState.finished && gameState.winner && gameState.winner !== '0x0000000000000000000000000000000000000000' && (
           <div style={{
+            position: 'relative',
             background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            padding: '2rem',
+            padding: '1.5rem',
             borderRadius: '16px',
             textAlign: 'center',
             marginBottom: '2rem',
             boxShadow: '0 8px 32px rgba(102, 126, 234, 0.4)'
           }}>
-            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🎉🏆🎉</div>
-            <div style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '0.5rem', color: '#FFD700' }}>
+            {/* Game ID Badge - Top Left */}
+            <div style={{
+              position: 'absolute',
+              top: '0.75rem',
+              left: '0.75rem',
+              padding: '0.25rem 0.5rem',
+              background: 'rgba(0, 0, 0, 0.3)',
+              border: '1px solid rgba(255, 255, 255, 0.3)',
+              borderRadius: '8px',
+              fontSize: '0.65rem',
+              color: 'white',
+              fontWeight: 'bold'
+            }}>
+              Game #{currentGameId.toString()}
+            </div>
+
+            <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem', marginTop: '0.5rem' }}>🎉🏆🎉</div>
+            <div style={{ fontSize: '1.75rem', fontWeight: 'bold', marginBottom: '0.5rem', color: '#FFD700' }}>
               WINNER!
             </div>
-            <div style={{ fontSize: '1.25rem', marginBottom: '1rem', fontFamily: 'monospace', background: 'rgba(0,0,0,0.3)', padding: '0.75rem', borderRadius: '8px', display: 'inline-block' }}>
+            <div style={{
+              fontSize: '0.85rem',
+              marginBottom: '1rem',
+              fontFamily: 'monospace',
+              background: 'rgba(0,0,0,0.3)',
+              padding: '0.5rem',
+              borderRadius: '8px',
+              wordBreak: 'break-all',
+              maxWidth: '100%',
+              overflow: 'hidden'
+            }}>
               {gameState.winner}
             </div>
             {userAddress?.toLowerCase() === gameState.winner.toLowerCase() && (
-              <div style={{ marginTop: '1rem', padding: '1rem', background: 'rgba(255,215,0,0.2)', borderRadius: '8px', border: '2px solid #FFD700' }}>
-                <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>🎊 Congratulations! You Won! 🎊</div>
-                <div style={{ fontSize: '1rem', opacity: 0.9 }}>
+              <div style={{ marginTop: '1rem', padding: '0.75rem', background: 'rgba(255,215,0,0.2)', borderRadius: '8px', border: '2px solid #FFD700' }}>
+                <div style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>🎊 Congratulations! 🎊</div>
+                <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>
                   Prize: ${gameDetails.prizeValue?.toString() || '0'} {gameDetails.prizeCurrency || 'USD'}
                 </div>
-                <div style={{ fontSize: '0.875rem', marginTop: '0.5rem', opacity: 0.8 }}>
+                <div style={{ fontSize: '0.75rem', marginTop: '0.5rem', opacity: 0.8 }}>
                   Contact the sponsor to claim your prize
                 </div>
               </div>
             )}
-            <div style={{ marginTop: '1.5rem', fontSize: '0.875rem', opacity: 0.8 }}>
+            <div style={{ marginTop: '1rem', fontSize: '0.75rem', opacity: 0.8, wordBreak: 'break-word' }}>
               Game ended at {gameState.endAt ? new Date(Number(gameState.endAt) * 1000).toLocaleString() : 'N/A'}
             </div>
           </div>

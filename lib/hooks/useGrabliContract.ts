@@ -11,6 +11,23 @@ import {
   LeaderboardEntry
 } from '../contracts/grabli';
 
+// Hook to get game count
+export function useGameCount() {
+  const { data, isError, isLoading, refetch } = useReadContract({
+    address: getGrabliAddress(baseSepolia.id),
+    abi: GRABLI_ABI,
+    functionName: 'gameCount',
+    chainId: baseSepolia.id,
+  });
+
+  return {
+    gameCount: (data as bigint) || BigInt(0),
+    isLoading,
+    isError,
+    refetch,
+  };
+}
+
 // Hook to get active games
 export function useActiveGames() {
   const { data, isError, isLoading, refetch } = useReadContract({
@@ -332,5 +349,78 @@ export function useForceCloseGame() {
     isSuccess,
     error,
     hash,
+  };
+}
+
+// ERC20 ABI for approve function
+const ERC20_ABI = [
+  {
+    constant: false,
+    inputs: [
+      { name: '_spender', type: 'address' },
+      { name: '_value', type: 'uint256' }
+    ],
+    name: 'approve',
+    outputs: [{ name: '', type: 'bool' }],
+    type: 'function'
+  },
+  {
+    constant: true,
+    inputs: [
+      { name: '_owner', type: 'address' },
+      { name: '_spender', type: 'address' }
+    ],
+    name: 'allowance',
+    outputs: [{ name: '', type: 'uint256' }],
+    type: 'function'
+  }
+] as const;
+
+// Hook to approve ERC20 tokens
+export function useApproveERC20() {
+  const { writeContract, data: hash, isPending, error } = useWriteContract();
+
+  const approve = (tokenAddress: Address, spenderAddress: Address, amount: bigint) => {
+    writeContract({
+      address: tokenAddress,
+      abi: ERC20_ABI,
+      functionName: 'approve',
+      args: [spenderAddress, amount],
+      chainId: baseSepolia.id,
+    });
+  };
+
+  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
+    hash,
+  });
+
+  return {
+    approve,
+    isPending,
+    isConfirming,
+    isSuccess,
+    error,
+    hash,
+  };
+}
+
+// Hook to check ERC20 allowance
+export function useERC20Allowance(tokenAddress?: Address, ownerAddress?: Address, spenderAddress?: Address) {
+  const { data, isError, isLoading, refetch } = useReadContract({
+    address: tokenAddress,
+    abi: ERC20_ABI,
+    functionName: 'allowance',
+    args: ownerAddress && spenderAddress ? [ownerAddress, spenderAddress] : undefined,
+    chainId: baseSepolia.id,
+    query: {
+      enabled: !!tokenAddress && !!ownerAddress && !!spenderAddress,
+    },
+  });
+
+  return {
+    allowance: data as bigint | undefined,
+    isLoading,
+    isError,
+    refetch,
   };
 }
