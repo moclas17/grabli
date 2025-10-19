@@ -62,14 +62,14 @@ export default function Home() {
     return () => clearInterval(interval);
   }, [gameState]);
 
-  // Auto-refresh game state every 2 seconds to update current holder's time
+  // Auto-refresh game state every 10 seconds to update current holder's time
   useEffect(() => {
     if (!hasActiveGame || !gameState) return;
 
     const refreshInterval = setInterval(() => {
       refetchState();
       refetchLeaderboard();
-    }, 2000); // Refresh every 2 seconds
+    }, 10000); // Refresh every 10 seconds
 
     return () => clearInterval(refreshInterval);
   }, [hasActiveGame, gameState, refetchState, refetchLeaderboard]);
