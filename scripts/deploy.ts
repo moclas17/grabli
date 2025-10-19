@@ -5,18 +5,45 @@ import dotenv from "dotenv";
 
 dotenv.config({ override: true });
 
+// Network configuration
+const NETWORKS = {
+  base: {
+    rpcUrl: process.env.BASE_RPC_URL || "https://mainnet.base.org",
+    chainId: 8453,
+    name: "Base Mainnet",
+    envVar: "NEXT_PUBLIC_GRABLI_CONTRACT_ADDRESS",
+    verifyNetwork: "base",
+  },
+  baseSepolia: {
+    rpcUrl: process.env.BASE_SEPOLIA_RPC_URL || "https://sepolia.base.org",
+    chainId: 84532,
+    name: "Base Sepolia",
+    envVar: "NEXT_PUBLIC_GRABLI_CONTRACT_ADDRESS_SEPOLIA",
+    verifyNetwork: "baseSepolia",
+  },
+};
+
 async function main() {
-  console.log("Deploying Grabli contract...");
+  // Get network from hardhat arguments (defaults to baseSepolia for backwards compatibility)
+  const networkName = process.env.HARDHAT_NETWORK || "baseSepolia";
+  const networkConfig = NETWORKS[networkName as keyof typeof NETWORKS];
+
+  if (!networkConfig) {
+    throw new Error(
+      `Unknown network: ${networkName}. Available networks: ${Object.keys(NETWORKS).join(", ")}`
+    );
+  }
+
+  console.log(`\n=== Deploying Grabli contract to ${networkConfig.name} ===\n`);
 
   // Setup provider and wallet
-  const rpcUrl = process.env.BASE_SEPOLIA_RPC_URL || "https://sepolia.base.org";
   const privateKey = process.env.PRIVATE_KEY;
 
   if (!privateKey) {
     throw new Error("PRIVATE_KEY not set in .env");
   }
 
-  const provider = new ethers.JsonRpcProvider(rpcUrl);
+  const provider = new ethers.JsonRpcProvider(networkConfig.rpcUrl);
   const wallet = new ethers.Wallet(privateKey, provider);
 
   console.log("Deploying with account:", wallet.address);
@@ -47,15 +74,21 @@ async function main() {
 
   const network = await provider.getNetwork();
   console.log("\n=== Deployment Summary ===");
+  console.log("Network:", networkConfig.name);
   console.log("Contract Address:", address);
   console.log("Deployer:", wallet.address);
   console.log("Chain ID:", network.chainId.toString());
+  console.log(`Expected Chain ID: ${networkConfig.chainId}`);
+
+  if (network.chainId.toString() !== networkConfig.chainId.toString()) {
+    console.warn("\n⚠️  WARNING: Chain ID mismatch!");
+  }
 
   console.log("\n=== Next Steps ===");
   console.log("1. Add contract address to .env:");
-  console.log(`   NEXT_PUBLIC_GRABLI_CONTRACT_ADDRESS_SEPOLIA=${address}`);
+  console.log(`   ${networkConfig.envVar}=${address}`);
   console.log("\n2. Verify contract on BaseScan:");
-  console.log(`   npx hardhat verify --network baseSepolia ${address}`);
+  console.log(`   npx hardhat verify --network ${networkConfig.verifyNetwork} ${address}`);
 
   return address;
 }

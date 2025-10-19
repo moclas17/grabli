@@ -6,7 +6,7 @@ import { Wallet } from "@coinbase/onchainkit/wallet";
 import { Name, Avatar } from "@coinbase/onchainkit/identity";
 import { useMiniKit } from "@coinbase/onchainkit/minikit";
 import { useAccount, useSwitchChain, useChainId } from "wagmi";
-import { baseSepolia, base } from "viem/chains";
+import { base } from "viem/chains";
 import styles from "./page.module.css";
 import {
   useActiveGames,
@@ -404,7 +404,7 @@ export default function Home() {
               <div style={{ marginTop: '1rem', padding: '0.75rem', background: 'rgba(255,215,0,0.2)', borderRadius: '8px', border: '2px solid #FFD700' }}>
                 <div style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>🎊 Congratulations! 🎊</div>
                 <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>
-                  Prize: ${gameDetails.prizeValue?.toString() || '0'} {gameDetails.prizeCurrency || 'USD'}
+                  Prize: {gameDetails.prizeAmount ? (Number(gameDetails.prizeAmount) / 1e6).toFixed(2) : '0'} {gameDetails.prizeCurrency || 'USD'}
                 </div>
                 <div style={{ fontSize: '0.75rem', marginTop: '0.5rem', opacity: 0.8 }}>
                   Contact the sponsor to claim your prize
@@ -431,7 +431,7 @@ export default function Home() {
           <div className={styles.prizeIcon}>🏆</div>
           <h1 className={styles.prizeTitle}>{gameDetails.prizeTitle || 'Prize'}</h1>
           <div className={styles.prizeValue}>
-            ${gameDetails.prizeValue?.toString() || '0'} {gameDetails.prizeCurrency || 'USD'}
+            {gameDetails.prizeAmount ? (Number(gameDetails.prizeAmount) / 1e6).toFixed(2) : '0'} {gameDetails.prizeCurrency || 'USD'}
           </div>
           <p className={styles.prizeDescription}>
             {gameDetails.prizeDescription || 'Winner takes all!'}
@@ -483,7 +483,7 @@ export default function Home() {
         )}
 
         {/* Wrong Network Warning */}
-        {userAddress && chainId !== baseSepolia.id && (
+        {userAddress && chainId !== base.id && (
           <div style={{
             background: '#f59e0b',
             padding: '1rem',
@@ -495,7 +495,7 @@ export default function Home() {
               ⚠️ Wrong Network! You&apos;re on chain {chainId}
             </div>
             <button
-              onClick={() => switchChain({ chainId: baseSepolia.id })}
+              onClick={() => switchChain({ chainId: base.id })}
               style={{
                 padding: '0.75rem 1.5rem',
                 background: 'white',
@@ -516,17 +516,17 @@ export default function Home() {
         <button
           className={styles.claimButton}
           onClick={handleClaim}
-          disabled={!isGameActive || isPending || isConfirming || !userAddress || chainId !== baseSepolia.id || isCurrentHolder}
+          disabled={!isGameActive || isPending || isConfirming || !userAddress || chainId !== base.id || isCurrentHolder}
         >
           {!userAddress
             ? '🔗 Connect Wallet First'
-            : chainId !== baseSepolia.id
+            : chainId !== base.id
             ? '⚠️ Wrong Network'
             : isCurrentHolder
             ? '👑 You are the Current Holder!'
             : isPending || isConfirming
             ? '⏳ Processing...'
-            : isSuccess
+            : isSuccess && isCurrentHolder
             ? '✅ Claimed!'
             : '🎯 GRAB IT NOW!'}
         </button>

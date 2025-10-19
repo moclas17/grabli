@@ -7,17 +7,12 @@ export type GrabliContractAddress = Address;
 
 // Contract addresses by chain ID
 export const GRABLI_ADDRESSES: Record<number, GrabliContractAddress> = {
-  // Base Sepolia (testnet)
-  84532: (process.env.NEXT_PUBLIC_GRABLI_CONTRACT_ADDRESS_SEPOLIA || '0x0') as Address,
   // Base Mainnet
   8453: (process.env.NEXT_PUBLIC_GRABLI_CONTRACT_ADDRESS || '0x0') as Address,
-  // Local hardhat
-  31337: '0x5FbDB2315678afecb367f032d93F642f64180aa3' as Address,
 };
 
 export interface GameState {
   prizeTitle: string;
-  prizeValue: bigint;
   prizeCurrency: string;
   sponsorName: string;
   startAt: bigint;
@@ -32,12 +27,10 @@ export interface GameState {
 
 export interface GameDetails {
   prizeTitle: string;
-  prizeValue: bigint;
   prizeCurrency: string;
   prizeDescription: string;
   sponsorName: string;
   sponsorUrl: string;
-  sponsorLogo: string;
   startAt: bigint;
   endAt: bigint;
   finished: boolean;
@@ -68,7 +61,5 @@ export function getGrabliAddress(chainId: number): GrabliContractAddress {
   return address;
 }
 
-// Current game ID (should be loaded from env or contract)
-export const CURRENT_GAME_ID = BigInt(
-  process.env.NEXT_PUBLIC_CURRENT_GAME_ID || '0'
-);
+// Current game ID default (use useActiveGames() to get actual active game)
+export const CURRENT_GAME_ID = BigInt(0);

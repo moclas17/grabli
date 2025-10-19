@@ -57,7 +57,7 @@ export default function DebugPage() {
             <pre style={{ overflow: 'auto', fontSize: '12px', whiteSpace: 'pre-wrap' }}>
               <strong>Prize Info:</strong>
               {'\n'}Prize Title: {gameState.prizeTitle || '(empty)'}
-              {'\n'}Prize Value: {gameState.prizeValue.toString()} {gameState.prizeCurrency}
+              {'\n'}Prize Currency: {gameState.prizeCurrency}
               {'\n'}
               {'\n'}<strong>ERC20 Prize:</strong>
               {'\n'}Prize Token: {gameState.prizeToken}
@@ -93,7 +93,7 @@ export default function DebugPage() {
             <pre style={{ overflow: 'auto', fontSize: '12px', whiteSpace: 'pre-wrap' }}>
               <strong>Prize:</strong>
               {'\n'}Title: {gameDetails.prizeTitle || '(empty)'}
-              {'\n'}Value: {gameDetails.prizeValue.toString()} {gameDetails.prizeCurrency}
+              {'\n'}Currency: {gameDetails.prizeCurrency}
               {'\n'}Description: {gameDetails.prizeDescription}
               {'\n'}
               {'\n'}<strong>ERC20 Prize Details:</strong>
@@ -104,7 +104,6 @@ export default function DebugPage() {
               {'\n'}<strong>Sponsor Info:</strong>
               {'\n'}Name: {gameDetails.sponsorName}
               {'\n'}URL: {gameDetails.sponsorUrl}
-              {'\n'}Logo: {gameDetails.sponsorLogo}
               {'\n'}
               {'\n'}<strong>Timing:</strong>
               {'\n'}Start: {gameDetails.startAt.toString()} {gameDetails.startAt > 0 ? `(${new Date(Number(gameDetails.startAt) * 1000).toLocaleString()})` : '⏳ PENDING FUNDING'}

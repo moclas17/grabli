@@ -1,6 +1,6 @@
 import { useReadContract, useReadContracts, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { Address } from 'viem';
-import { baseSepolia } from 'viem/chains';
+import { base } from 'viem/chains';
 import {
   GRABLI_ABI,
   getGrabliAddress,
@@ -14,10 +14,10 @@ import {
 // Hook to get game count
 export function useGameCount() {
   const { data, isError, isLoading, refetch } = useReadContract({
-    address: getGrabliAddress(baseSepolia.id),
+    address: getGrabliAddress(base.id),
     abi: GRABLI_ABI,
     functionName: 'gameCount',
-    chainId: baseSepolia.id,
+    chainId: base.id,
   });
 
   return {
@@ -31,10 +31,10 @@ export function useGameCount() {
 // Hook to get active games
 export function useActiveGames() {
   const { data, isError, isLoading, refetch } = useReadContract({
-    address: getGrabliAddress(baseSepolia.id),
+    address: getGrabliAddress(base.id),
     abi: GRABLI_ABI,
     functionName: 'getActiveGames',
-    chainId: baseSepolia.id,
+    chainId: base.id,
   });
 
   const activeGames = (data as bigint[]) || [];
@@ -54,13 +54,13 @@ export function useActiveGames() {
 // Hook to get game state
 export function useGameState(gameId: bigint = CURRENT_GAME_ID) {
   const { data, isError, isLoading, refetch } = useReadContract({
-    address: getGrabliAddress(baseSepolia.id),
+    address: getGrabliAddress(base.id),
     abi: GRABLI_ABI,
     functionName: 'getGameState',
     args: [gameId],
-    chainId: baseSepolia.id,
+    chainId: base.id,
     query: {
-      enabled: gameId !== BigInt(0), // Only query if we have a valid game ID
+      enabled: gameId !== undefined && gameId !== null, // Always query if gameId is provided
     },
   });
 
@@ -69,17 +69,16 @@ export function useGameState(gameId: bigint = CURRENT_GAME_ID) {
   if (data && Array.isArray(data)) {
     gameState = {
       prizeTitle: data[0] as string,
-      prizeValue: data[1] as bigint,
-      prizeCurrency: data[2] as string,
-      sponsorName: data[3] as string,
-      startAt: data[4] as bigint,
-      endAt: data[5] as bigint,
-      holder: data[6] as Address,
-      currentHolderSeconds: data[7] as bigint,
-      finished: data[8] as boolean,
-      winner: data[9] as Address,
-      prizeToken: data[10] as Address,
-      prizeAmount: data[11] as bigint,
+      prizeCurrency: data[1] as string,
+      sponsorName: data[2] as string,
+      startAt: data[3] as bigint,
+      endAt: data[4] as bigint,
+      holder: data[5] as Address,
+      currentHolderSeconds: data[6] as bigint,
+      finished: data[7] as boolean,
+      winner: data[8] as Address,
+      prizeToken: data[9] as Address,
+      prizeAmount: data[10] as bigint,
     };
   } else if (data) {
     // If it's already an object, use it as is
@@ -97,13 +96,13 @@ export function useGameState(gameId: bigint = CURRENT_GAME_ID) {
 // Hook to get game details (includes sponsor info)
 export function useGameDetails(gameId: bigint = CURRENT_GAME_ID) {
   const { data, isError, isLoading, refetch } = useReadContract({
-    address: getGrabliAddress(baseSepolia.id),
+    address: getGrabliAddress(base.id),
     abi: GRABLI_ABI,
     functionName: 'getGameDetails',
     args: [gameId],
-    chainId: baseSepolia.id,
+    chainId: base.id,
     query: {
-      enabled: gameId !== BigInt(0), // Only query if we have a valid game ID
+      enabled: gameId !== undefined && gameId !== null, // Always query if gameId is provided
     },
   });
 
@@ -112,18 +111,16 @@ export function useGameDetails(gameId: bigint = CURRENT_GAME_ID) {
   if (data && Array.isArray(data)) {
     gameDetails = {
       prizeTitle: data[0] as string,
-      prizeValue: data[1] as bigint,
-      prizeCurrency: data[2] as string,
-      prizeDescription: data[3] as string,
-      sponsorName: data[4] as string,
-      sponsorUrl: data[5] as string,
-      sponsorLogo: data[6] as string,
-      startAt: data[7] as bigint,
-      endAt: data[8] as bigint,
-      finished: data[9] as boolean,
-      prizeToken: data[10] as Address,
-      prizeAmount: data[11] as bigint,
-      sponsor: data[12] as Address,
+      prizeCurrency: data[1] as string,
+      prizeDescription: data[2] as string,
+      sponsorName: data[3] as string,
+      sponsorUrl: data[4] as string,
+      startAt: data[5] as bigint,
+      endAt: data[6] as bigint,
+      finished: data[7] as boolean,
+      prizeToken: data[8] as Address,
+      prizeAmount: data[9] as bigint,
+      sponsor: data[10] as Address,
     };
   } else if (data) {
     // If it's already an object, use it as is
@@ -141,11 +138,11 @@ export function useGameDetails(gameId: bigint = CURRENT_GAME_ID) {
 // Hook to get player stats
 export function usePlayerStats(playerAddress?: Address, gameId: bigint = CURRENT_GAME_ID) {
   const { data, isError, isLoading, refetch } = useReadContract({
-    address: getGrabliAddress(baseSepolia.id),
+    address: getGrabliAddress(base.id),
     abi: GRABLI_ABI,
     functionName: 'getPlayerStats',
     args: playerAddress ? [gameId, playerAddress] : undefined,
-    chainId: baseSepolia.id,
+    chainId: base.id,
     query: {
       enabled: !!playerAddress,
     },
@@ -162,11 +159,11 @@ export function usePlayerStats(playerAddress?: Address, gameId: bigint = CURRENT
 // Hook to get leaderboard
 export function useLeaderboard(gameId: bigint = CURRENT_GAME_ID) {
   const { data, isError, isLoading, refetch } = useReadContract({
-    address: getGrabliAddress(baseSepolia.id),
+    address: getGrabliAddress(base.id),
     abi: GRABLI_ABI,
     functionName: 'getLeaderboard',
     args: [gameId],
-    chainId: baseSepolia.id,
+    chainId: base.id,
   });
 
   // Transform data into leaderboard entries
@@ -194,11 +191,11 @@ export function useClaim() {
 
   const claim = (gameId: bigint = CURRENT_GAME_ID) => {
     writeContract({
-      address: getGrabliAddress(baseSepolia.id),
+      address: getGrabliAddress(base.id),
       abi: GRABLI_ABI,
       functionName: 'claim',
       args: [gameId],
-      chainId: baseSepolia.id,
+      chainId: base.id,
     });
   };
 
@@ -222,11 +219,11 @@ export function useCloseGame() {
 
   const closeGame = (gameId: bigint = CURRENT_GAME_ID) => {
     writeContract({
-      address: getGrabliAddress(baseSepolia.id),
+      address: getGrabliAddress(base.id),
       abi: GRABLI_ABI,
       functionName: 'closeGame',
       args: [gameId],
-      chainId: baseSepolia.id,
+      chainId: base.id,
     });
   };
 
@@ -250,35 +247,31 @@ export function useCreateGame() {
 
   const createGame = (params: {
     prizeTitle: string;
-    prizeValue: bigint;
     prizeCurrency: string;
     prizeDescription: string;
     prizeToken: Address;
     prizeAmount: bigint;
     sponsorName: string;
     sponsorUrl: string;
-    sponsorLogo: string;
     duration: bigint;
     claimCooldown: bigint;
   }) => {
     writeContract({
-      address: getGrabliAddress(baseSepolia.id),
+      address: getGrabliAddress(base.id),
       abi: GRABLI_ABI,
       functionName: 'createGame',
       args: [
         params.prizeTitle,
-        params.prizeValue,
         params.prizeCurrency,
         params.prizeDescription,
         params.prizeToken,
         params.prizeAmount,
         params.sponsorName,
         params.sponsorUrl,
-        params.sponsorLogo,
         params.duration,
         params.claimCooldown,
       ],
-      chainId: baseSepolia.id,
+      chainId: base.id,
     });
   };
 
@@ -302,11 +295,11 @@ export function useFundGame() {
 
   const fundGame = (gameId: bigint = CURRENT_GAME_ID) => {
     writeContract({
-      address: getGrabliAddress(baseSepolia.id),
+      address: getGrabliAddress(base.id),
       abi: GRABLI_ABI,
       functionName: 'fundGame',
       args: [gameId],
-      chainId: baseSepolia.id,
+      chainId: base.id,
     });
   };
 
@@ -330,11 +323,11 @@ export function useForceCloseGame() {
 
   const forceCloseGame = (gameId: bigint = CURRENT_GAME_ID) => {
     writeContract({
-      address: getGrabliAddress(baseSepolia.id),
+      address: getGrabliAddress(base.id),
       abi: GRABLI_ABI,
       functionName: 'forceCloseGame',
       args: [gameId],
-      chainId: baseSepolia.id,
+      chainId: base.id,
     });
   };
 
@@ -386,7 +379,7 @@ export function useApproveERC20() {
       abi: ERC20_ABI,
       functionName: 'approve',
       args: [spenderAddress, amount],
-      chainId: baseSepolia.id,
+      chainId: base.id,
     });
   };
 
@@ -411,7 +404,7 @@ export function useERC20Allowance(tokenAddress?: Address, ownerAddress?: Address
     abi: ERC20_ABI,
     functionName: 'allowance',
     args: ownerAddress && spenderAddress ? [ownerAddress, spenderAddress] : undefined,
-    chainId: baseSepolia.id,
+    chainId: base.id,
     query: {
       enabled: !!tokenAddress && !!ownerAddress && !!spenderAddress,
     },
@@ -428,13 +421,13 @@ export function useERC20Allowance(tokenAddress?: Address, ownerAddress?: Address
 // Hook to get all players who participated in a game
 export function useGamePlayers(gameId: bigint) {
   const { data, isError, isLoading, refetch } = useReadContract({
-    address: getGrabliAddress(baseSepolia.id),
+    address: getGrabliAddress(base.id),
     abi: GRABLI_ABI,
     functionName: 'getGamePlayers',
     args: [gameId],
-    chainId: baseSepolia.id,
+    chainId: base.id,
     query: {
-      enabled: gameId !== BigInt(0),
+      enabled: gameId !== undefined && gameId !== null,
     },
   });
 
@@ -455,20 +448,20 @@ export function useGlobalStats() {
 
   // Fetch all game states
   const gameStateContracts = gameIds.map((gameId) => ({
-    address: getGrabliAddress(baseSepolia.id),
+    address: getGrabliAddress(base.id),
     abi: GRABLI_ABI,
     functionName: 'getGameState' as const,
     args: [gameId] as const,
-    chainId: baseSepolia.id,
+    chainId: base.id,
   }));
 
   // Fetch all game players to count unique players
   const gamePlayersContracts = gameIds.map((gameId) => ({
-    address: getGrabliAddress(baseSepolia.id),
+    address: getGrabliAddress(base.id),
     abi: GRABLI_ABI,
     functionName: 'getGamePlayers' as const,
     args: [gameId] as const,
-    chainId: baseSepolia.id,
+    chainId: base.id,
   }));
 
   const { data: gameStatesData, isError: isErrorStates, isLoading: isLoadingStates } = useReadContracts({
@@ -554,11 +547,11 @@ export function useGlobalStats() {
   playersByGame.forEach(({ gameId, players }) => {
     players.forEach((player) => {
       playerStatsContracts.push({
-        address: getGrabliAddress(baseSepolia.id),
+        address: getGrabliAddress(base.id),
         abi: GRABLI_ABI,
         functionName: 'getPlayerStats' as const,
         args: [gameId, player] as const,
-        chainId: baseSepolia.id,
+        chainId: base.id,
       });
     });
   });
@@ -600,13 +593,13 @@ export function useGlobalStats() {
 // This fetches the basic leaderboard and then enriches it with player stats
 export function useFullLeaderboard(gameId: bigint = CURRENT_GAME_ID) {
   const { data: leaderboardData, isError: isErrorLeaderboard, isLoading: isLoadingLeaderboard } = useReadContract({
-    address: getGrabliAddress(baseSepolia.id),
+    address: getGrabliAddress(base.id),
     abi: GRABLI_ABI,
     functionName: 'getLeaderboard',
     args: [gameId],
-    chainId: baseSepolia.id,
+    chainId: base.id,
     query: {
-      enabled: gameId !== BigInt(0),
+      enabled: gameId !== undefined && gameId !== null,
     },
   });
 
@@ -617,11 +610,11 @@ export function useFullLeaderboard(gameId: bigint = CURRENT_GAME_ID) {
 
   // Create contract calls for each player's stats
   const contracts = playerAddresses.map((address) => ({
-    address: getGrabliAddress(baseSepolia.id),
+    address: getGrabliAddress(base.id),
     abi: GRABLI_ABI,
     functionName: 'getPlayerStats' as const,
     args: [gameId, address] as const,
-    chainId: baseSepolia.id,
+    chainId: base.id,
   }));
 
   // Fetch all player stats in batch

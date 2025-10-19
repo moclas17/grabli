@@ -5,7 +5,7 @@ import { Wallet } from "@coinbase/onchainkit/wallet";
 import Image from "next/image";
 import { useCreateGame, useForceCloseGame, useActiveGames, useFundGame, useGameDetails, useApproveERC20, useERC20Allowance } from "../../lib/hooks/useGrabliContract";
 import { getGrabliAddress } from "../../lib/contracts/grabli";
-import { baseSepolia } from "viem/chains";
+import { base } from "viem/chains";
 import styles from "../page.module.css";
 
 export default function AdminPage() {
@@ -47,7 +47,7 @@ export default function AdminPage() {
     hash: approveHash
   } = useApproveERC20();
 
-  const contractAddress = getGrabliAddress(baseSepolia.id);
+  const contractAddress = getGrabliAddress(base.id);
   const { allowance, refetch: refetchAllowance } = useERC20Allowance(
     gameDetails?.prizeToken,
     address,
@@ -56,14 +56,12 @@ export default function AdminPage() {
 
   const [formData, setFormData] = useState({
     prizeTitle: "Prize Pool",
-    prizeValue: "1",
     prizeCurrency: "USD",
     prizeDescription: "Winner takes all!",
     prizeToken: "0x0000000000000000000000000000000000000000",
     prizeAmount: "0",
     sponsorName: "Acme Corp",
     sponsorUrl: "https://acme.example",
-    sponsorLogo: "/sponsor-logo.png",
     durationHours: "24",
     claimCooldown: "10",
   });
@@ -81,14 +79,12 @@ export default function AdminPage() {
 
     createGame({
       prizeTitle: formData.prizeTitle,
-      prizeValue: BigInt(formData.prizeValue),
       prizeCurrency: formData.prizeCurrency,
       prizeDescription: formData.prizeDescription,
       prizeToken: formData.prizeToken as `0x${string}`,
       prizeAmount: BigInt(formData.prizeAmount),
       sponsorName: formData.sponsorName,
       sponsorUrl: formData.sponsorUrl,
-      sponsorLogo: formData.sponsorLogo,
       duration: durationSeconds,
       claimCooldown: cooldownSeconds,
     });
@@ -130,7 +126,7 @@ export default function AdminPage() {
           </h1>
 
           {/* Wrong Network Warning */}
-          {address && chainId !== baseSepolia.id && (
+          {address && chainId !== base.id && (
             <div style={{
               background: '#f59e0b',
               padding: '1rem',
@@ -138,10 +134,10 @@ export default function AdminPage() {
               marginBottom: '1rem',
               textAlign: 'center'
             }}>
-              ⚠️ Wrong Network! You&apos;re on chain {chainId}, but need Base Sepolia (84532)
+              ⚠️ Wrong Network! You&apos;re on chain {chainId}, but need Base Mainnet (8453)
               <br />
               <button
-                onClick={() => switchChain({ chainId: baseSepolia.id })}
+                onClick={() => switchChain({ chainId: base.id })}
                 style={{
                   marginTop: '0.5rem',
                   padding: '0.5rem 1rem',
@@ -214,49 +210,25 @@ export default function AdminPage() {
               />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1rem' }}>
-              <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
-                  Prize Value
-                </label>
-                <input
-                  type="number"
-                  name="prizeValue"
-                  value={formData.prizeValue}
-                  onChange={handleChange}
-                  required
-                  min="0"
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem',
-                    borderRadius: '8px',
-                    border: '1px solid rgba(255,255,255,0.2)',
-                    background: 'rgba(0,0,0,0.3)',
-                    color: 'white',
-                  }}
-                />
-              </div>
-
-              <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
-                  Currency
-                </label>
-                <input
-                  type="text"
-                  name="prizeCurrency"
-                  value={formData.prizeCurrency}
-                  onChange={handleChange}
-                  required
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem',
-                    borderRadius: '8px',
-                    border: '1px solid rgba(255,255,255,0.2)',
-                    background: 'rgba(0,0,0,0.3)',
-                    color: 'white',
-                  }}
-                />
-              </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
+                Currency
+              </label>
+              <input
+                type="text"
+                name="prizeCurrency"
+                value={formData.prizeCurrency}
+                onChange={handleChange}
+                required
+                style={{
+                  width: '100%',
+                  padding: '0.75rem',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(255,255,255,0.2)',
+                  background: 'rgba(0,0,0,0.3)',
+                  color: 'white',
+                }}
+              />
             </div>
 
             <div>
@@ -381,27 +353,6 @@ export default function AdminPage() {
                   type="url"
                   name="sponsorUrl"
                   value={formData.sponsorUrl}
-                  onChange={handleChange}
-                  required
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem',
-                    borderRadius: '8px',
-                    border: '1px solid rgba(255,255,255,0.2)',
-                    background: 'rgba(0,0,0,0.3)',
-                    color: 'white',
-                  }}
-                />
-              </div>
-
-              <div style={{ marginTop: '1rem' }}>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
-                  Sponsor Logo URL
-                </label>
-                <input
-                  type="text"
-                  name="sponsorLogo"
-                  value={formData.sponsorLogo}
                   onChange={handleChange}
                   required
                   style={{
@@ -577,7 +528,7 @@ export default function AdminPage() {
                 forceCloseGame(currentGameId);
               }
             }}
-            disabled={!address || isClosePending || isCloseConfirming || chainId !== baseSepolia.id}
+            disabled={!address || isClosePending || isCloseConfirming || chainId !== base.id}
             style={{
               width: '100%',
               padding: '1rem',
@@ -727,7 +678,7 @@ export default function AdminPage() {
                   }
                   approve(gameDetails.prizeToken as `0x${string}`, contractAddress as `0x${string}`, gameDetails.prizeAmount);
                 }}
-                disabled={!address || isApprovePending || isApproveConfirming || chainId !== baseSepolia.id}
+                disabled={!address || isApprovePending || isApproveConfirming || chainId !== base.id}
                 style={{
                   width: '100%',
                   padding: '1rem',
@@ -765,7 +716,7 @@ export default function AdminPage() {
                 !address ||
                 isFundPending ||
                 isFundConfirming ||
-                chainId !== baseSepolia.id ||
+                chainId !== base.id ||
                 !allowance ||
                 allowance < gameDetails.prizeAmount
               }

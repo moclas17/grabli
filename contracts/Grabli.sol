@@ -23,7 +23,6 @@ interface IERC20 {
 contract Grabli is Ownable, ReentrancyGuard {
     struct Game {
         string prizeTitle;
-        uint256 prizeValue;
         string prizeCurrency;
         string prizeDescription;
         address prizeToken;        // ERC20 token address for prize (address(0) = no token prize)
@@ -31,7 +30,6 @@ contract Grabli is Ownable, ReentrancyGuard {
         address sponsor;           // Sponsor who created and funds the game
         string sponsorName;
         string sponsorUrl;
-        string sponsorLogo;
         uint256 startAt;
         uint256 endAt;
         address holder;
@@ -110,27 +108,23 @@ contract Grabli is Ownable, ReentrancyGuard {
      * @notice Automatically closes any active games before creating a new one
      * @notice Game will start once fundGame() is called
      * @param _prizeTitle Title of the prize
-     * @param _prizeValue Value of the prize (display only)
      * @param _prizeCurrency Currency of the prize (e.g., "USD", display only)
      * @param _prizeDescription Description of the prize
      * @param _prizeToken Address of ERC20 token for prize (address(0) = no token prize)
      * @param _prizeAmount Amount of ERC20 tokens for prize
      * @param _sponsorName Name of the sponsor
      * @param _sponsorUrl URL of the sponsor
-     * @param _sponsorLogo Logo URL of the sponsor
      * @param _duration Duration of the game in seconds
      * @param _claimCooldown Minimum seconds between claims (0 = no cooldown)
      */
     function createGame(
         string memory _prizeTitle,
-        uint256 _prizeValue,
         string memory _prizeCurrency,
         string memory _prizeDescription,
         address _prizeToken,
         uint256 _prizeAmount,
         string memory _sponsorName,
         string memory _sponsorUrl,
-        string memory _sponsorLogo,
         uint256 _duration,
         uint256 _claimCooldown
     ) external onlyOwner returns (uint256) {
@@ -144,7 +138,6 @@ contract Grabli is Ownable, ReentrancyGuard {
 
         games[gameId] = Game({
             prizeTitle: _prizeTitle,
-            prizeValue: _prizeValue,
             prizeCurrency: _prizeCurrency,
             prizeDescription: _prizeDescription,
             prizeToken: _prizeToken,
@@ -152,7 +145,6 @@ contract Grabli is Ownable, ReentrancyGuard {
             sponsor: msg.sender,
             sponsorName: _sponsorName,
             sponsorUrl: _sponsorUrl,
-            sponsorLogo: _sponsorLogo,
             startAt: 0,  // NOT started yet - will be set when funded
             endAt: 0,    // NOT started yet - will be set when funded
             holder: address(0),
@@ -391,7 +383,6 @@ contract Grabli is Ownable, ReentrancyGuard {
      */
     function getGameState(uint256 _gameId) external view returns (
         string memory prizeTitle,
-        uint256 prizeValue,
         string memory prizeCurrency,
         string memory sponsorName,
         uint256 startAt,
@@ -413,7 +404,6 @@ contract Grabli is Ownable, ReentrancyGuard {
 
         return (
             game.prizeTitle,
-            game.prizeValue,
             game.prizeCurrency,
             game.sponsorName,
             game.startAt,
@@ -491,12 +481,10 @@ contract Grabli is Ownable, ReentrancyGuard {
      */
     function getGameDetails(uint256 _gameId) external view returns (
         string memory prizeTitle,
-        uint256 prizeValue,
         string memory prizeCurrency,
         string memory prizeDescription,
         string memory sponsorName,
         string memory sponsorUrl,
-        string memory sponsorLogo,
         uint256 startAt,
         uint256 endAt,
         bool finished,
@@ -508,12 +496,10 @@ contract Grabli is Ownable, ReentrancyGuard {
 
         return (
             game.prizeTitle,
-            game.prizeValue,
             game.prizeCurrency,
             game.prizeDescription,
             game.sponsorName,
             game.sponsorUrl,
-            game.sponsorLogo,
             game.startAt,
             game.endAt,
             game.finished,

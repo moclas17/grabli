@@ -4,15 +4,52 @@ import dotenv from "dotenv";
 
 dotenv.config({ override: true });
 
+// Network configuration - Using Etherscan API v2 multichain
+const NETWORKS = {
+  base: {
+    name: "Base Mainnet",
+    apiUrl: "https://api.etherscan.io/v2/api",
+    chainId: 8453,
+    browserUrl: "https://basescan.org",
+    envVar: "NEXT_PUBLIC_GRABLI_CONTRACT_ADDRESS",
+  },
+  baseSepolia: {
+    name: "Base Sepolia",
+    apiUrl: "https://api.etherscan.io/v2/api",
+    chainId: 84532,
+    browserUrl: "https://sepolia.basescan.org",
+    envVar: "NEXT_PUBLIC_GRABLI_CONTRACT_ADDRESS_SEPOLIA",
+  },
+};
+
 /**
  * Manual verification on BaseScan using API
+ * Usage:
+ *   npm run verify-basescan -- base 0xYourContractAddress
+ *   npm run verify-basescan -- baseSepolia 0xYourContractAddress
  */
 async function main() {
-  const contractAddress = process.env.NEXT_PUBLIC_GRABLI_CONTRACT_ADDRESS_SEPOLIA;
+  // Get network and address from command line arguments
+  const args = process.argv.slice(2);
+  const networkName = args[0] || "baseSepolia";
+  const contractAddressArg = args[1];
+
+  const networkConfig = NETWORKS[networkName as keyof typeof NETWORKS];
+
+  if (!networkConfig) {
+    throw new Error(
+      `Unknown network: ${networkName}. Available networks: ${Object.keys(NETWORKS).join(", ")}`
+    );
+  }
+
+  // Contract address from argument or env variable
+  const contractAddress = contractAddressArg || process.env[networkConfig.envVar];
   const apiKey = process.env.BASESCAN_API_KEY;
 
   if (!contractAddress) {
-    throw new Error("NEXT_PUBLIC_GRABLI_CONTRACT_ADDRESS_SEPOLIA not set in .env");
+    throw new Error(
+      `Contract address not provided. Either pass as argument or set ${networkConfig.envVar} in .env`
+    );
   }
 
   if (!apiKey) {
@@ -22,8 +59,8 @@ async function main() {
   console.log("=".repeat(60));
   console.log("Manual BaseScan Verification");
   console.log("=".repeat(60));
+  console.log("Network:", networkConfig.name);
   console.log("Contract Address:", contractAddress);
-  console.log("Network: Base Sepolia");
 
   // Load contract source
   const sourceCode = readFileSync(
@@ -38,8 +75,9 @@ async function main() {
   );
   const artifact = JSON.parse(readFileSync(artifactPath, "utf-8"));
 
-  // Prepare verification payload
+  // Prepare verification payload (API v2 format)
   const params = new URLSearchParams({
+    chainid: networkConfig.chainId.toString(),
     apikey: apiKey,
     module: "contract",
     action: "verifysourcecode",
@@ -58,7 +96,7 @@ async function main() {
   console.log("\nSending verification request...");
 
   try {
-    const response = await fetch("https://api-sepolia.basescan.org/api", {
+    const response = await fetch(networkConfig.apiUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -77,7 +115,7 @@ async function main() {
       console.log("GUID:", result.result);
       console.log("\nYou can check the verification status at:");
       console.log(
-        `https://sepolia.basescan.org/address/${contractAddress}#code`
+        `${networkConfig.browserUrl}/address/${contractAddress}#code`
       );
       console.log("\nNote: Verification may take a few minutes to complete.");
     } else {
@@ -87,7 +125,7 @@ async function main() {
       if (result.result.includes("Already Verified")) {
         console.log("\n✅ Contract is already verified!");
         console.log(
-          `View at: https://sepolia.basescan.org/address/${contractAddress}#code`
+          `View at: ${networkConfig.browserUrl}/address/${contractAddress}#code`
         );
       }
     }
