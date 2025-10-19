@@ -386,3 +386,9 @@
   text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.8);
 }
 
+/* OnchainKit Identity Component Styles */
+.playerAvatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+}

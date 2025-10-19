@@ -3,9 +3,10 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Wallet } from "@coinbase/onchainkit/wallet";
+import { Name, Avatar } from "@coinbase/onchainkit/identity";
 import { useMiniKit } from "@coinbase/onchainkit/minikit";
 import { useAccount, useSwitchChain, useChainId } from "wagmi";
-import { baseSepolia } from "viem/chains";
+import { baseSepolia, base } from "viem/chains";
 import styles from "./page.module.css";
 import {
   useActiveGames,
@@ -100,10 +101,24 @@ export default function Home() {
     return `${hours}h ${mins}m ${secs}s`;
   };
 
-  const shortenAddress = (address?: string) => {
-    if (!address) return 'N/A';
-    return `${address.slice(0, 6)}...${address.slice(-4)}`;
-  };
+  // Component to display player name with Basename support
+  const PlayerName = ({ address }: { address: string }) => (
+    <div style={{
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: '0.5rem',
+    }}>
+      <Avatar
+        address={address as `0x${string}`}
+        chain={base}
+        className={styles.playerAvatar}
+      />
+      <Name
+        address={address as `0x${string}`}
+        chain={base}
+      />
+    </div>
+  );
 
   const handleClaim = () => {
     if (!userAddress) {
@@ -288,9 +303,7 @@ export default function Home() {
   }
 
   const isGameActive = gameState.endAt && !gameState.finished && Date.now() < Number(gameState.endAt) * 1000;
-  const currentHolder = gameState.holder && gameState.holder !== '0x0000000000000000000000000000000000000000'
-    ? shortenAddress(gameState.holder)
-    : 'No one yet';
+  const hasHolder = gameState.holder && gameState.holder !== '0x0000000000000000000000000000000000000000';
 
   // Check if current user is the holder
   const isCurrentHolder = userAddress && gameState.holder &&
@@ -450,7 +463,13 @@ export default function Home() {
         {/* Current Holder */}
         <div className={styles.holderSection}>
           <div className={styles.holderLabel}>Current Holder</div>
-          <div className={styles.holderAddress}>{currentHolder}</div>
+          <div className={styles.holderAddress}>
+            {hasHolder ? (
+              <PlayerName address={gameState.holder} />
+            ) : (
+              'No one yet'
+            )}
+          </div>
         </div>
 
         {/* Your Stats */}
@@ -549,7 +568,7 @@ export default function Home() {
                   <div key={player.address} className={styles.leaderboardItem}>
                     <span className={styles.rank}>#{index + 1}</span>
                     <span className={styles.playerAddress}>
-                      {shortenAddress(player.address)}
+                      <PlayerName address={player.address} />
                       {userAddress?.toLowerCase() === player.address.toLowerCase() && ' (You)'}
                       {isHolder && ' 👑'}
                     </span>

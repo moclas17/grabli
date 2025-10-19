@@ -3,14 +3,16 @@ import { useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Wallet } from "@coinbase/onchainkit/wallet";
+import { Name, Avatar, Address } from "@coinbase/onchainkit/identity";
 import { useMiniKit } from "@coinbase/onchainkit/minikit";
+import { base } from "viem/chains";
 import {
   useActiveGames,
   useGameCount,
   useGameState,
   useGameDetails,
   useGamePlayers,
-  useLeaderboard,
+  useFullLeaderboard,
 } from "../../lib/hooks/useGrabliContract";
 import styles from "../page.module.css";
 
@@ -36,16 +38,15 @@ export default function StatsPage() {
   const { gameState, isLoading: isLoadingState } = useGameState(currentGameId);
   const { gameDetails, isLoading: isLoadingDetails } = useGameDetails(currentGameId);
   const { players, isLoading: isLoadingPlayers } = useGamePlayers(currentGameId);
-  const { leaderboard, isLoading: isLoadingLeaderboard } = useLeaderboard(currentGameId);
+  const { leaderboard, isLoading: isLoadingLeaderboard } = useFullLeaderboard(currentGameId);
 
   // Calculate statistics from leaderboard
-  const totalClaims = leaderboard.reduce((sum, player) => sum + Number(player.claimCount), 0);
-  const totalPlayTime = leaderboard.reduce((sum, player) => sum + Number(player.totalSeconds), 0);
+  const totalClaims = leaderboard.reduce((sum, player) => sum + Number(player.claimCount || 0), 0);
 
   // Most active player (most claims)
   const mostActivePlayer = leaderboard.length > 0
     ? leaderboard.reduce((max, player) =>
-        player.claimCount > max.claimCount ? player : max
+        (player.claimCount || BigInt(0)) > (max.claimCount || BigInt(0)) ? player : max
       )
     : null;
 
@@ -64,9 +65,55 @@ export default function StatsPage() {
     return `${hours}h ${mins}m ${secs}s`;
   };
 
-  const shortenAddress = (address: string) => {
-    return `${address.slice(0, 6)}...${address.slice(-4)}`;
-  };
+  // Component to display player identity with Basename support
+  const PlayerIdentity = ({ address }: { address: string }) => (
+    <div style={{
+      display: 'flex',
+      alignItems: 'center',
+      gap: '0.5rem',
+      minWidth: 0,
+    }}>
+      <div style={{ flexShrink: 0 }}>
+        <Avatar
+          address={address as `0x${string}`}
+          chain={base}
+        />
+      </div>
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        minWidth: 0,
+        overflow: 'hidden',
+      }}>
+        <div style={{
+          fontSize: '0.875rem',
+          fontWeight: '600',
+          color: '#00d4ff',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+        }}>
+          <Name
+            address={address as `0x${string}`}
+            chain={base}
+          />
+        </div>
+        <div style={{
+          fontSize: '0.7rem',
+          color: '#888',
+          fontFamily: 'monospace',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+        }}>
+          <Address
+            address={address as `0x${string}`}
+            isSliced
+          />
+        </div>
+      </div>
+    </div>
+  );
 
   const isLoading = isLoadingState || isLoadingDetails || isLoadingPlayers || isLoadingLeaderboard;
 
@@ -219,7 +266,7 @@ export default function StatsPage() {
         </div>
 
         {/* Most Active Player */}
-        {mostActivePlayer && mostActivePlayer.claimCount > BigInt(0) && (
+        {mostActivePlayer && (mostActivePlayer.claimCount || BigInt(0)) > BigInt(0) && (
           <div style={{
             width: '100%',
             padding: '1.5rem',
@@ -242,24 +289,19 @@ export default function StatsPage() {
               padding: '1rem',
               background: '#0f0f1e',
               borderRadius: '8px',
-              display: 'grid',
-              gridTemplateColumns: '1fr auto',
-              gap: '1rem',
+              display: 'flex',
+              justifyContent: 'space-between',
               alignItems: 'center',
+              gap: '1rem',
             }}>
-              <div style={{
-                fontFamily: 'monospace',
-                fontSize: '0.875rem',
-                color: '#c0c0c0',
-              }}>
-                {shortenAddress(mostActivePlayer.address)}
-              </div>
+              <PlayerIdentity address={mostActivePlayer.address} />
               <div style={{
                 fontWeight: 'bold',
                 color: '#ff00ff',
                 fontSize: '1.25rem',
+                whiteSpace: 'nowrap',
               }}>
-                {mostActivePlayer.claimCount.toString()} claims
+                {(mostActivePlayer.claimCount || BigInt(0)).toString()} claims
               </div>
             </div>
           </div>
@@ -289,22 +331,17 @@ export default function StatsPage() {
               padding: '1rem',
               background: '#0f0f1e',
               borderRadius: '8px',
-              display: 'grid',
-              gridTemplateColumns: '1fr auto',
-              gap: '1rem',
+              display: 'flex',
+              justifyContent: 'space-between',
               alignItems: 'center',
+              gap: '1rem',
             }}>
-              <div style={{
-                fontFamily: 'monospace',
-                fontSize: '0.875rem',
-                color: '#c0c0c0',
-              }}>
-                {shortenAddress(longestHolder.address)}
-              </div>
+              <PlayerIdentity address={longestHolder.address} />
               <div style={{
                 fontWeight: 'bold',
                 color: '#ffd700',
                 fontSize: '1.25rem',
+                whiteSpace: 'nowrap',
               }}>
                 {formatSeconds(longestHolder.totalSeconds)}
               </div>
@@ -339,7 +376,7 @@ export default function StatsPage() {
               overflowY: 'auto',
             }}>
               {leaderboard
-                .sort((a, b) => Number(b.claimCount) - Number(a.claimCount))
+                .sort((a, b) => Number((b.claimCount || BigInt(0))) - Number((a.claimCount || BigInt(0))))
                 .map((player, index) => (
                   <div
                     key={player.address}
@@ -348,8 +385,7 @@ export default function StatsPage() {
                       background: '#0f0f1e',
                       border: '2px solid #1a1a2e',
                       borderRadius: '8px',
-                      display: 'grid',
-                      gridTemplateColumns: '2rem 1fr auto',
+                      display: 'flex',
                       gap: '0.75rem',
                       alignItems: 'center',
                     }}
@@ -357,21 +393,16 @@ export default function StatsPage() {
                     <div style={{
                       fontWeight: 'bold',
                       color: index === 0 ? '#ffd700' : index === 1 ? '#c0c0c0' : index === 2 ? '#cd7f32' : '#888',
+                      minWidth: '2rem',
                     }}>
                       #{index + 1}
                     </div>
-                    <div>
-                      <div style={{
-                        fontFamily: 'monospace',
-                        fontSize: '0.75rem',
-                        color: '#c0c0c0',
-                        marginBottom: '0.25rem',
-                      }}>
-                        {shortenAddress(player.address)}
-                      </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <PlayerIdentity address={player.address} />
                       <div style={{
                         fontSize: '0.65rem',
                         color: '#888',
+                        marginTop: '0.25rem',
                       }}>
                         Time: {formatSeconds(player.totalSeconds)}
                       </div>
@@ -381,8 +412,9 @@ export default function StatsPage() {
                       color: '#00ff00',
                       fontSize: '0.875rem',
                       textAlign: 'right',
+                      whiteSpace: 'nowrap',
                     }}>
-                      {player.claimCount.toString()} TX
+                      {(player.claimCount || BigInt(0)).toString()} TX
                     </div>
                   </div>
                 ))}

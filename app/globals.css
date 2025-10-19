@@ -67,3 +67,21 @@
     box-shadow: 0 0 8px #00ff00;
   }
 }
+
+/* OnchainKit Identity Component Custom Styles */
+.ock-avatar {
+  border: 2px solid #00d4ff !important;
+  box-shadow: 0 0 4px rgba(0, 212, 255, 0.3);
+}
+
+.ock-name {
+  color: #00d4ff !important;
+  font-weight: 600 !important;
+  text-shadow: 0 0 4px rgba(0, 212, 255, 0.3);
+}
+
+.ock-address {
+  color: #888 !important;
+  font-family: 'Source Code Pro', monospace !important;
+  font-size: 0.75rem !important;
+}

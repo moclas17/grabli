@@ -1,4 +1,4 @@
-import { useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
+import { useReadContract, useReadContracts, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { Address } from 'viem';
 import { baseSepolia } from 'viem/chains';
 import {
@@ -443,5 +443,67 @@ export function useGamePlayers(gameId: bigint) {
     isLoading,
     isError,
     refetch,
+  };
+}
+
+// Hook to get full leaderboard with claim counts
+// This fetches the basic leaderboard and then enriches it with player stats
+export function useFullLeaderboard(gameId: bigint = CURRENT_GAME_ID) {
+  const { data: leaderboardData, isError: isErrorLeaderboard, isLoading: isLoadingLeaderboard } = useReadContract({
+    address: getGrabliAddress(baseSepolia.id),
+    abi: GRABLI_ABI,
+    functionName: 'getLeaderboard',
+    args: [gameId],
+    chainId: baseSepolia.id,
+    query: {
+      enabled: gameId !== BigInt(0),
+    },
+  });
+
+  // Get the list of player addresses from leaderboard
+  const playerAddresses = leaderboardData
+    ? (leaderboardData as [Address[], bigint[]])[0]
+    : [];
+
+  // Create contract calls for each player's stats
+  const contracts = playerAddresses.map((address) => ({
+    address: getGrabliAddress(baseSepolia.id),
+    abi: GRABLI_ABI,
+    functionName: 'getPlayerStats' as const,
+    args: [gameId, address] as const,
+    chainId: baseSepolia.id,
+  }));
+
+  // Fetch all player stats in batch
+  const { data: playerStatsData, isError: isErrorStats, isLoading: isLoadingStats } = useReadContracts({
+    contracts,
+    query: {
+      enabled: playerAddresses.length > 0 && gameId !== BigInt(0),
+    },
+  });
+
+  // Combine leaderboard data with player stats
+  const leaderboard: LeaderboardEntry[] = [];
+
+  if (leaderboardData && playerStatsData) {
+    const [addresses, totalSeconds] = leaderboardData as [Address[], bigint[]];
+    addresses.forEach((address, index) => {
+      const statsResult = playerStatsData[index];
+      const claimCount = statsResult?.status === 'success' && statsResult.result
+        ? (statsResult.result as [bigint, bigint, bigint])[2] // claimCount is the 3rd element
+        : BigInt(0);
+
+      leaderboard.push({
+        address,
+        totalSeconds: totalSeconds[index],
+        claimCount,
+      });
+    });
+  }
+
+  return {
+    leaderboard,
+    isLoading: isLoadingLeaderboard || isLoadingStats,
+    isError: isErrorLeaderboard || isErrorStats,
   };
 }

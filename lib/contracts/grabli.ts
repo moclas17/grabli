@@ -55,6 +55,7 @@ export interface PlayerStats {
 export interface LeaderboardEntry {
   address: Address;
   totalSeconds: bigint;
+  claimCount?: bigint; // Optional - populated when fetching full stats
 }
 
 // Get contract address for current chain
