@@ -582,55 +582,27 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Statistics Buttons */}
-        <div style={{
-          width: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '0.75rem',
-        }}>
-          <Link
-            href="/stats"
-            style={{
-              width: '100%',
-              padding: '1rem',
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              border: '3px solid #00d4ff',
-              borderRadius: '12px',
-              textAlign: 'center',
-              color: 'white',
-              textDecoration: 'none',
-              fontWeight: 'bold',
-              fontSize: '1.125rem',
-              transition: 'all 0.2s',
-              display: 'block',
-              boxShadow: '0 4px 0 #0088aa, 0 4px 8px rgba(0, 212, 255, 0.3)',
-            }}
-          >
-            📊 Current Game Stats
-          </Link>
-
-          <Link
-            href="/global-stats"
-            style={{
-              width: '100%',
-              padding: '1rem',
-              background: 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)',
-              border: '3px solid #ff00ff',
-              borderRadius: '12px',
-              textAlign: 'center',
-              color: 'white',
-              textDecoration: 'none',
-              fontWeight: 'bold',
-              fontSize: '1.125rem',
-              transition: 'all 0.2s',
-              display: 'block',
-              boxShadow: '0 4px 0 #aa00aa, 0 4px 8px rgba(255, 0, 255, 0.3)',
-            }}
-          >
-            🌍 Global Statistics
-          </Link>
-        </div>
+        {/* Statistics Button */}
+        <Link
+          href="/stats"
+          style={{
+            width: '100%',
+            padding: '1rem',
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            border: '3px solid #00d4ff',
+            borderRadius: '12px',
+            textAlign: 'center',
+            color: 'white',
+            textDecoration: 'none',
+            fontWeight: 'bold',
+            fontSize: '1.125rem',
+            transition: 'all 0.2s',
+            display: 'block',
+            boxShadow: '0 4px 0 #0088aa, 0 4px 8px rgba(0, 212, 255, 0.3)',
+          }}
+        >
+          📊 View Game Statistics
+        </Link>
       </div>
     </div>
   );
