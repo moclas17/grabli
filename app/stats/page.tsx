@@ -473,26 +473,55 @@ export default function StatsPage() {
           </div>
         )}
 
-        {/* Back Button */}
-        <Link
-          href="/"
-          style={{
-            width: '100%',
-            padding: '1rem',
-            background: '#1a1a2e',
-            border: '3px solid #00d4ff',
-            borderRadius: '12px',
-            textAlign: 'center',
-            color: '#00d4ff',
-            textDecoration: 'none',
-            fontWeight: 'bold',
-            fontSize: '1.125rem',
-            transition: 'all 0.2s',
-            display: 'block',
-          }}
-        >
-          ← Back to Game
-        </Link>
+        {/* Navigation Links */}
+        <div style={{
+          width: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.75rem',
+        }}>
+          {/* Global Stats Link */}
+          <Link
+            href="/global-stats"
+            style={{
+              width: '100%',
+              padding: '1rem',
+              background: '#1a1a2e',
+              border: '3px solid #ff00ff',
+              borderRadius: '12px',
+              textAlign: 'center',
+              color: '#ff00ff',
+              textDecoration: 'none',
+              fontWeight: 'bold',
+              fontSize: 'clamp(0.875rem, 3.5vw, 1.125rem)',
+              transition: 'all 0.2s',
+              display: 'block',
+            }}
+          >
+            🌍 View Global Statistics
+          </Link>
+
+          {/* Back Button */}
+          <Link
+            href="/"
+            style={{
+              width: '100%',
+              padding: '1rem',
+              background: '#1a1a2e',
+              border: '3px solid #00d4ff',
+              borderRadius: '12px',
+              textAlign: 'center',
+              color: '#00d4ff',
+              textDecoration: 'none',
+              fontWeight: 'bold',
+              fontSize: 'clamp(0.875rem, 3.5vw, 1.125rem)',
+              transition: 'all 0.2s',
+              display: 'block',
+            }}
+          >
+            ← Back to Game
+          </Link>
+        </div>
       </div>
     </div>
   );

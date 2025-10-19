@@ -446,6 +446,156 @@ export function useGamePlayers(gameId: bigint) {
   };
 }
 
+// Hook to get global statistics across all games
+export function useGlobalStats() {
+  const { gameCount } = useGameCount();
+
+  // Get all game IDs
+  const gameIds = Array.from({ length: Number(gameCount) }, (_, i) => BigInt(i));
+
+  // Fetch all game states
+  const gameStateContracts = gameIds.map((gameId) => ({
+    address: getGrabliAddress(baseSepolia.id),
+    abi: GRABLI_ABI,
+    functionName: 'getGameState' as const,
+    args: [gameId] as const,
+    chainId: baseSepolia.id,
+  }));
+
+  // Fetch all game players to count unique players
+  const gamePlayersContracts = gameIds.map((gameId) => ({
+    address: getGrabliAddress(baseSepolia.id),
+    abi: GRABLI_ABI,
+    functionName: 'getGamePlayers' as const,
+    args: [gameId] as const,
+    chainId: baseSepolia.id,
+  }));
+
+  const { data: gameStatesData, isError: isErrorStates, isLoading: isLoadingStates } = useReadContracts({
+    contracts: gameStateContracts,
+    query: {
+      enabled: gameIds.length > 0,
+    },
+  });
+
+  const { data: gamePlayersData, isError: isErrorPlayers, isLoading: isLoadingPlayers } = useReadContracts({
+    contracts: gamePlayersContracts,
+    query: {
+      enabled: gameIds.length > 0,
+    },
+  });
+
+  // Aggregate statistics
+  const totalGames = Number(gameCount);
+  let activeGames = 0;
+  let finishedGames = 0;
+  let totalPrizeValue = 0;
+  let totalPlayers = 0;
+  const uniquePlayers = new Set<Address>();
+
+  if (gameStatesData) {
+    gameStatesData.forEach((result) => {
+      if (result?.status === 'success' && result.result) {
+        const gameState = result.result as [
+          string, // prizeTitle
+          bigint, // prizeValue
+          string, // prizeCurrency
+          string, // sponsorName
+          bigint, // startAt
+          bigint, // endAt
+          Address, // holder
+          bigint, // currentHolderSeconds
+          boolean, // finished
+          Address, // winner
+          Address, // prizeToken
+          bigint  // prizeAmount
+        ];
+        const finished = gameState[8];
+        const prizeValue = gameState[1];
+
+        if (finished) {
+          finishedGames++;
+        } else {
+          activeGames++;
+        }
+
+        totalPrizeValue += Number(prizeValue);
+      }
+    });
+  }
+
+  // Count unique players and prepare for transaction counting
+  const playersByGame: { gameId: bigint; players: Address[] }[] = [];
+
+  if (gamePlayersData) {
+    gamePlayersData.forEach((result, index) => {
+      if (result?.status === 'success' && result.result) {
+        const players = result.result as Address[];
+        players.forEach((player) => {
+          uniquePlayers.add(player);
+        });
+        totalPlayers += players.length;
+        playersByGame.push({ gameId: gameIds[index], players });
+      }
+    });
+  }
+
+  const totalUniquePlayers = uniquePlayers.size;
+
+  // Get player stats for all players to count transactions
+  const playerStatsContracts: {
+    address: Address;
+    abi: typeof GRABLI_ABI;
+    functionName: 'getPlayerStats';
+    args: readonly [bigint, Address];
+    chainId: number;
+  }[] = [];
+
+  playersByGame.forEach(({ gameId, players }) => {
+    players.forEach((player) => {
+      playerStatsContracts.push({
+        address: getGrabliAddress(baseSepolia.id),
+        abi: GRABLI_ABI,
+        functionName: 'getPlayerStats' as const,
+        args: [gameId, player] as const,
+        chainId: baseSepolia.id,
+      });
+    });
+  });
+
+  const { data: playerStatsData, isLoading: isLoadingStats } = useReadContracts({
+    contracts: playerStatsContracts,
+    query: {
+      enabled: playerStatsContracts.length > 0,
+    },
+  });
+
+  // Count total transactions
+  let totalTransactions = 0;
+  if (playerStatsData) {
+    playerStatsData.forEach((result) => {
+      if (result?.status === 'success' && result.result) {
+        const stats = result.result as [bigint, bigint, bigint];
+        const claimCount = stats[2]; // claimCount is the 3rd element
+        totalTransactions += Number(claimCount);
+      }
+    });
+  }
+
+  return {
+    totalGames,
+    activeGames,
+    finishedGames,
+    totalPrizeValue,
+    totalPlayers,
+    totalUniquePlayers,
+    totalTransactions,
+    gameIds,
+    isLoading: isLoadingStates || isLoadingPlayers || isLoadingStats,
+    isError: isErrorStates || isErrorPlayers,
+  };
+}
+
 // Hook to get full leaderboard with claim counts
 // This fetches the basic leaderboard and then enriches it with player stats
 export function useFullLeaderboard(gameId: bigint = CURRENT_GAME_ID) {
