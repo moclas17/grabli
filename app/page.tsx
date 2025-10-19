@@ -507,7 +507,7 @@ export default function Home() {
                 fontSize: '1rem'
               }}
             >
-              Switch to Base Sepolia
+              Switch to Base Mainnet
             </button>
           </div>
         )}

@@ -149,7 +149,7 @@ export default function AdminPage() {
                   cursor: 'pointer'
                 }}
               >
-                Switch to Base Sepolia
+                Switch to Base Mainnet
               </button>
             </div>
           )}
