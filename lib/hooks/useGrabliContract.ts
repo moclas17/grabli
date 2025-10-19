@@ -424,3 +424,24 @@ export function useERC20Allowance(tokenAddress?: Address, ownerAddress?: Address
     refetch,
   };
 }
+
+// Hook to get all players who participated in a game
+export function useGamePlayers(gameId: bigint) {
+  const { data, isError, isLoading, refetch } = useReadContract({
+    address: getGrabliAddress(baseSepolia.id),
+    abi: GRABLI_ABI,
+    functionName: 'getGamePlayers',
+    args: [gameId],
+    chainId: baseSepolia.id,
+    query: {
+      enabled: gameId !== BigInt(0),
+    },
+  });
+
+  return {
+    players: (data as Address[]) || [],
+    isLoading,
+    isError,
+    refetch,
+  };
+}

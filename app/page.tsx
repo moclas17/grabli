@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { Wallet } from "@coinbase/onchainkit/wallet";
 import { useMiniKit } from "@coinbase/onchainkit/minikit";
 import { useAccount, useSwitchChain, useChainId } from "wagmi";
@@ -561,6 +562,28 @@ export default function Home() {
             )}
           </div>
         </div>
+
+        {/* Statistics Button */}
+        <Link
+          href="/stats"
+          style={{
+            width: '100%',
+            padding: '1rem',
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            border: '3px solid #00d4ff',
+            borderRadius: '12px',
+            textAlign: 'center',
+            color: 'white',
+            textDecoration: 'none',
+            fontWeight: 'bold',
+            fontSize: '1.125rem',
+            transition: 'all 0.2s',
+            display: 'block',
+            boxShadow: '0 4px 0 #0088aa, 0 4px 8px rgba(0, 212, 255, 0.3)',
+          }}
+        >
+          📊 View Game Statistics
+        </Link>
       </div>
     </div>
   );
