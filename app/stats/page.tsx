@@ -42,6 +42,7 @@ export default function StatsPage() {
 
   // Calculate statistics from leaderboard
   const totalClaims = leaderboard.reduce((sum, player) => sum + Number(player.claimCount || 0), 0);
+  const totalPlayTime = leaderboard.reduce((sum, player) => sum + Number(player.totalSeconds), 0);
 
   // Most active player (most claims)
   const mostActivePlayer = leaderboard.length > 0
@@ -56,6 +57,13 @@ export default function StatsPage() {
         player.totalSeconds > max.totalSeconds ? player : max
       )
     : null;
+
+  // Calculate percentage of time held
+  const calculatePercentage = (seconds: bigint): string => {
+    if (totalPlayTime === 0) return '0';
+    const percentage = (Number(seconds) / totalPlayTime) * 100;
+    return percentage.toFixed(1);
+  };
 
   const formatSeconds = (seconds: bigint) => {
     const total = Number(seconds);
@@ -295,13 +303,22 @@ export default function StatsPage() {
               gap: '1rem',
             }}>
               <PlayerIdentity address={mostActivePlayer.address} />
-              <div style={{
-                fontWeight: 'bold',
-                color: '#ff00ff',
-                fontSize: '1.25rem',
-                whiteSpace: 'nowrap',
-              }}>
-                {(mostActivePlayer.claimCount || BigInt(0)).toString()} claims
+              <div style={{ textAlign: 'right' }}>
+                <div style={{
+                  fontWeight: 'bold',
+                  color: '#ff00ff',
+                  fontSize: '1.25rem',
+                  whiteSpace: 'nowrap',
+                }}>
+                  {(mostActivePlayer.claimCount || BigInt(0)).toString()} claims
+                </div>
+                <div style={{
+                  fontSize: '0.75rem',
+                  color: '#888',
+                  marginTop: '0.25rem',
+                }}>
+                  {calculatePercentage(mostActivePlayer.totalSeconds)}% of time
+                </div>
               </div>
             </div>
           </div>
@@ -337,13 +354,22 @@ export default function StatsPage() {
               gap: '1rem',
             }}>
               <PlayerIdentity address={longestHolder.address} />
-              <div style={{
-                fontWeight: 'bold',
-                color: '#ffd700',
-                fontSize: '1.25rem',
-                whiteSpace: 'nowrap',
-              }}>
-                {formatSeconds(longestHolder.totalSeconds)}
+              <div style={{ textAlign: 'right' }}>
+                <div style={{
+                  fontWeight: 'bold',
+                  color: '#ffd700',
+                  fontSize: '1.25rem',
+                  whiteSpace: 'nowrap',
+                }}>
+                  {formatSeconds(longestHolder.totalSeconds)}
+                </div>
+                <div style={{
+                  fontSize: '0.75rem',
+                  color: '#888',
+                  marginTop: '0.25rem',
+                }}>
+                  {calculatePercentage(longestHolder.totalSeconds)}% of time
+                </div>
               </div>
             </div>
           </div>
@@ -403,8 +429,17 @@ export default function StatsPage() {
                         fontSize: '0.65rem',
                         color: '#888',
                         marginTop: '0.25rem',
+                        display: 'flex',
+                        gap: '0.5rem',
+                        alignItems: 'center',
                       }}>
-                        Time: {formatSeconds(player.totalSeconds)}
+                        <span>Time: {formatSeconds(player.totalSeconds)}</span>
+                        <span style={{
+                          color: '#00d4ff',
+                          fontWeight: 'bold',
+                        }}>
+                          ({calculatePercentage(player.totalSeconds)}%)
+                        </span>
                       </div>
                     </div>
                     <div style={{
