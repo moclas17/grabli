@@ -78,7 +78,7 @@ export default function StatsPage() {
     <div style={{
       display: 'flex',
       alignItems: 'center',
-      gap: '0.5rem',
+      gap: 'clamp(0.35rem, 1.5vw, 0.5rem)',
       minWidth: 0,
     }}>
       <div style={{ flexShrink: 0 }}>
@@ -94,7 +94,7 @@ export default function StatsPage() {
         overflow: 'hidden',
       }}>
         <div style={{
-          fontSize: '0.875rem',
+          fontSize: 'clamp(0.75rem, 3vw, 0.875rem)',
           fontWeight: '600',
           color: '#00d4ff',
           overflow: 'hidden',
@@ -107,7 +107,7 @@ export default function StatsPage() {
           />
         </div>
         <div style={{
-          fontSize: '0.7rem',
+          fontSize: 'clamp(0.6rem, 2.5vw, 0.7rem)',
           color: '#888',
           fontFamily: 'monospace',
           overflow: 'hidden',
@@ -175,13 +175,13 @@ export default function StatsPage() {
         <div style={{
           width: '100%',
           textAlign: 'center',
-          padding: '1.5rem',
+          padding: '1rem',
           background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          borderRadius: '16px',
+          borderRadius: '12px',
           marginBottom: '1rem',
         }}>
           <h1 style={{
-            fontSize: '2rem',
+            fontSize: 'clamp(1.25rem, 5vw, 2rem)',
             fontWeight: 'bold',
             color: '#FFD700',
             textShadow: '2px 2px 0 #aa00aa, 4px 4px 0 rgba(0, 0, 0, 0.8)',
@@ -189,7 +189,11 @@ export default function StatsPage() {
           }}>
             📊 Game Statistics
           </h1>
-          <div style={{ fontSize: '0.875rem', opacity: 0.9 }}>
+          <div style={{
+            fontSize: 'clamp(0.75rem, 3vw, 0.875rem)',
+            opacity: 0.9,
+            wordBreak: 'break-word',
+          }}>
             Game #{currentGameId.toString()} - {gameDetails?.prizeTitle || 'N/A'}
           </div>
         </div>
@@ -204,70 +208,70 @@ export default function StatsPage() {
         }}>
           {/* Total Players */}
           <div style={{
-            padding: '1.5rem',
+            padding: 'clamp(0.75rem, 3vw, 1.5rem)',
             background: '#1a1a2e',
             border: '3px solid #00d4ff',
             borderRadius: '12px',
             textAlign: 'center',
           }}>
-            <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>👥</div>
-            <div style={{ fontSize: '1.75rem', fontWeight: 'bold', color: '#00d4ff' }}>
+            <div style={{ fontSize: 'clamp(1.5rem, 5vw, 2rem)', marginBottom: '0.25rem' }}>👥</div>
+            <div style={{ fontSize: 'clamp(1.25rem, 4vw, 1.75rem)', fontWeight: 'bold', color: '#00d4ff' }}>
               {players.length}
             </div>
-            <div style={{ fontSize: '0.75rem', opacity: 0.8, marginTop: '0.25rem' }}>
+            <div style={{ fontSize: 'clamp(0.65rem, 2.5vw, 0.75rem)', opacity: 0.8, marginTop: '0.25rem' }}>
               Total Players
             </div>
           </div>
 
           {/* Total Claims */}
           <div style={{
-            padding: '1.5rem',
+            padding: 'clamp(0.75rem, 3vw, 1.5rem)',
             background: '#1a1a2e',
             border: '3px solid #ff00ff',
             borderRadius: '12px',
             textAlign: 'center',
           }}>
-            <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>⚡</div>
-            <div style={{ fontSize: '1.75rem', fontWeight: 'bold', color: '#ff00ff' }}>
+            <div style={{ fontSize: 'clamp(1.5rem, 5vw, 2rem)', marginBottom: '0.25rem' }}>⚡</div>
+            <div style={{ fontSize: 'clamp(1.25rem, 4vw, 1.75rem)', fontWeight: 'bold', color: '#ff00ff' }}>
               {totalClaims}
             </div>
-            <div style={{ fontSize: '0.75rem', opacity: 0.8, marginTop: '0.25rem' }}>
+            <div style={{ fontSize: 'clamp(0.65rem, 2.5vw, 0.75rem)', opacity: 0.8, marginTop: '0.25rem' }}>
               Total Transactions
             </div>
           </div>
 
           {/* Game Status */}
           <div style={{
-            padding: '1.5rem',
+            padding: 'clamp(0.75rem, 3vw, 1.5rem)',
             background: '#1a1a2e',
             border: '3px solid #ffd700',
             borderRadius: '12px',
             textAlign: 'center',
           }}>
-            <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>
+            <div style={{ fontSize: 'clamp(1.5rem, 5vw, 2rem)', marginBottom: '0.25rem' }}>
               {gameState?.finished ? '🏁' : '🎮'}
             </div>
-            <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#ffd700' }}>
+            <div style={{ fontSize: 'clamp(1rem, 3.5vw, 1.25rem)', fontWeight: 'bold', color: '#ffd700' }}>
               {gameState?.finished ? 'Finished' : 'Active'}
             </div>
-            <div style={{ fontSize: '0.75rem', opacity: 0.8, marginTop: '0.25rem' }}>
+            <div style={{ fontSize: 'clamp(0.65rem, 2.5vw, 0.75rem)', opacity: 0.8, marginTop: '0.25rem' }}>
               Game Status
             </div>
           </div>
 
           {/* Prize Value */}
           <div style={{
-            padding: '1.5rem',
+            padding: 'clamp(0.75rem, 3vw, 1.5rem)',
             background: '#1a1a2e',
             border: '3px solid #00ff00',
             borderRadius: '12px',
             textAlign: 'center',
           }}>
-            <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>💰</div>
-            <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#00ff00' }}>
+            <div style={{ fontSize: 'clamp(1.5rem, 5vw, 2rem)', marginBottom: '0.25rem' }}>💰</div>
+            <div style={{ fontSize: 'clamp(1rem, 3.5vw, 1.25rem)', fontWeight: 'bold', color: '#00ff00' }}>
               ${gameDetails?.prizeValue?.toString() || '0'}
             </div>
-            <div style={{ fontSize: '0.75rem', opacity: 0.8, marginTop: '0.25rem' }}>
+            <div style={{ fontSize: 'clamp(0.65rem, 2.5vw, 0.75rem)', opacity: 0.8, marginTop: '0.25rem' }}>
               Prize Value
             </div>
           </div>
@@ -277,14 +281,14 @@ export default function StatsPage() {
         {mostActivePlayer && (mostActivePlayer.claimCount || BigInt(0)) > BigInt(0) && (
           <div style={{
             width: '100%',
-            padding: '1.5rem',
+            padding: 'clamp(1rem, 3vw, 1.5rem)',
             background: '#16213e',
             border: '4px solid #ff00ff',
             borderRadius: '16px',
             marginBottom: '1rem',
           }}>
             <h2 style={{
-              fontSize: '1.25rem',
+              fontSize: 'clamp(1rem, 4vw, 1.25rem)',
               fontWeight: 'bold',
               marginBottom: '1rem',
               textAlign: 'center',
@@ -294,28 +298,33 @@ export default function StatsPage() {
               ⚡ Most Active Player
             </h2>
             <div style={{
-              padding: '1rem',
+              padding: 'clamp(0.75rem, 2.5vw, 1rem)',
               background: '#0f0f1e',
               borderRadius: '8px',
               display: 'flex',
+              flexDirection: 'row',
+              flexWrap: 'wrap',
               justifyContent: 'space-between',
               alignItems: 'center',
-              gap: '1rem',
+              gap: '0.75rem',
             }}>
-              <PlayerIdentity address={mostActivePlayer.address} />
-              <div style={{ textAlign: 'right' }}>
+              <div style={{ flex: '1 1 auto', minWidth: '150px' }}>
+                <PlayerIdentity address={mostActivePlayer.address} />
+              </div>
+              <div style={{ textAlign: 'right', flex: '0 0 auto' }}>
                 <div style={{
                   fontWeight: 'bold',
                   color: '#ff00ff',
-                  fontSize: '1.25rem',
+                  fontSize: 'clamp(1rem, 4vw, 1.25rem)',
                   whiteSpace: 'nowrap',
                 }}>
                   {(mostActivePlayer.claimCount || BigInt(0)).toString()} claims
                 </div>
                 <div style={{
-                  fontSize: '0.75rem',
+                  fontSize: 'clamp(0.65rem, 2.5vw, 0.75rem)',
                   color: '#888',
                   marginTop: '0.25rem',
+                  whiteSpace: 'nowrap',
                 }}>
                   {calculatePercentage(mostActivePlayer.totalSeconds)}% of time
                 </div>
@@ -328,14 +337,14 @@ export default function StatsPage() {
         {longestHolder && longestHolder.totalSeconds > BigInt(0) && (
           <div style={{
             width: '100%',
-            padding: '1.5rem',
+            padding: 'clamp(1rem, 3vw, 1.5rem)',
             background: '#16213e',
             border: '4px solid #ffd700',
             borderRadius: '16px',
             marginBottom: '1rem',
           }}>
             <h2 style={{
-              fontSize: '1.25rem',
+              fontSize: 'clamp(1rem, 4vw, 1.25rem)',
               fontWeight: 'bold',
               marginBottom: '1rem',
               textAlign: 'center',
@@ -345,28 +354,33 @@ export default function StatsPage() {
               👑 Longest Holder
             </h2>
             <div style={{
-              padding: '1rem',
+              padding: 'clamp(0.75rem, 2.5vw, 1rem)',
               background: '#0f0f1e',
               borderRadius: '8px',
               display: 'flex',
+              flexDirection: 'row',
+              flexWrap: 'wrap',
               justifyContent: 'space-between',
               alignItems: 'center',
-              gap: '1rem',
+              gap: '0.75rem',
             }}>
-              <PlayerIdentity address={longestHolder.address} />
-              <div style={{ textAlign: 'right' }}>
+              <div style={{ flex: '1 1 auto', minWidth: '150px' }}>
+                <PlayerIdentity address={longestHolder.address} />
+              </div>
+              <div style={{ textAlign: 'right', flex: '0 0 auto' }}>
                 <div style={{
                   fontWeight: 'bold',
                   color: '#ffd700',
-                  fontSize: '1.25rem',
+                  fontSize: 'clamp(1rem, 4vw, 1.25rem)',
                   whiteSpace: 'nowrap',
                 }}>
                   {formatSeconds(longestHolder.totalSeconds)}
                 </div>
                 <div style={{
-                  fontSize: '0.75rem',
+                  fontSize: 'clamp(0.65rem, 2.5vw, 0.75rem)',
                   color: '#888',
                   marginTop: '0.25rem',
+                  whiteSpace: 'nowrap',
                 }}>
                   {calculatePercentage(longestHolder.totalSeconds)}% of time
                 </div>
@@ -379,13 +393,13 @@ export default function StatsPage() {
         {leaderboard.length > 0 && (
           <div style={{
             width: '100%',
-            padding: '1.5rem',
+            padding: 'clamp(1rem, 3vw, 1.5rem)',
             background: '#16213e',
             border: '4px solid #00d4ff',
             borderRadius: '16px',
           }}>
             <h2 style={{
-              fontSize: '1.25rem',
+              fontSize: 'clamp(1rem, 4vw, 1.25rem)',
               fontWeight: 'bold',
               marginBottom: '1rem',
               textAlign: 'center',
@@ -407,30 +421,32 @@ export default function StatsPage() {
                   <div
                     key={player.address}
                     style={{
-                      padding: '0.75rem',
+                      padding: 'clamp(0.5rem, 2vw, 0.75rem)',
                       background: '#0f0f1e',
                       border: '2px solid #1a1a2e',
                       borderRadius: '8px',
                       display: 'flex',
-                      gap: '0.75rem',
+                      gap: 'clamp(0.5rem, 2vw, 0.75rem)',
                       alignItems: 'center',
                     }}
                   >
                     <div style={{
                       fontWeight: 'bold',
                       color: index === 0 ? '#ffd700' : index === 1 ? '#c0c0c0' : index === 2 ? '#cd7f32' : '#888',
-                      minWidth: '2rem',
+                      minWidth: 'clamp(1.5rem, 4vw, 2rem)',
+                      fontSize: 'clamp(0.75rem, 3vw, 0.875rem)',
                     }}>
                       #{index + 1}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <PlayerIdentity address={player.address} />
                       <div style={{
-                        fontSize: '0.65rem',
+                        fontSize: 'clamp(0.6rem, 2.5vw, 0.65rem)',
                         color: '#888',
                         marginTop: '0.25rem',
                         display: 'flex',
-                        gap: '0.5rem',
+                        flexWrap: 'wrap',
+                        gap: '0.25rem',
                         alignItems: 'center',
                       }}>
                         <span>Time: {formatSeconds(player.totalSeconds)}</span>
@@ -445,7 +461,7 @@ export default function StatsPage() {
                     <div style={{
                       fontWeight: 'bold',
                       color: '#00ff00',
-                      fontSize: '0.875rem',
+                      fontSize: 'clamp(0.75rem, 3vw, 0.875rem)',
                       textAlign: 'right',
                       whiteSpace: 'nowrap',
                     }}>
