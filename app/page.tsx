@@ -24,6 +24,7 @@ export default function Home() {
   const chainId = useChainId();
   const { switchChain } = useSwitchChain();
   const [timeRemaining, setTimeRemaining] = useState(0);
+  const [showHowToPlay, setShowHowToPlay] = useState(false);
 
   // Auto-detect active game
   const { activeGameId, hasActiveGame, isLoading: isLoadingActiveGames } = useActiveGames();
@@ -324,6 +325,35 @@ export default function Home() {
         </div>
         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
           <button
+            onClick={() => setShowHowToPlay(true)}
+            style={{
+              width: '48px',
+              height: '48px',
+              borderRadius: '12px',
+              border: 'none',
+              background: 'oklch(27.9% .041 260.031)',
+              color: 'white',
+              fontSize: '1.5rem',
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontWeight: 'bold',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'oklch(37.9% .041 260.031)';
+              e.currentTarget.style.transform = 'scale(1.05)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'oklch(27.9% .041 260.031)';
+              e.currentTarget.style.transform = 'scale(1)';
+            }}
+            title="How to Play"
+          >
+            ?
+          </button>
+          <button
             onClick={handleRefresh}
             style={{
               width: '48px',
@@ -604,6 +634,122 @@ export default function Home() {
           📊 View Game Statistics
         </Link>
       </div>
+
+      {/* How to Play Modal */}
+      {showHowToPlay && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.85)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+            padding: '1rem',
+          }}
+          onClick={() => setShowHowToPlay(false)}
+        >
+          <div
+            style={{
+              background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)',
+              borderRadius: '16px',
+              padding: '2rem',
+              maxWidth: '600px',
+              width: '100%',
+              maxHeight: '80vh',
+              overflowY: 'auto',
+              border: '2px solid #00d4ff',
+              boxShadow: '0 8px 32px rgba(0, 212, 255, 0.3)',
+              position: 'relative',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setShowHowToPlay(false)}
+              style={{
+                position: 'absolute',
+                top: '1rem',
+                right: '1rem',
+                background: 'rgba(255, 255, 255, 0.1)',
+                border: 'none',
+                borderRadius: '8px',
+                color: 'white',
+                fontSize: '1.5rem',
+                width: '40px',
+                height: '40px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              ×
+            </button>
+
+            <h2 style={{ fontSize: '1.75rem', marginBottom: '1.5rem', color: '#00d4ff', textAlign: 'center' }}>
+              🎮 How to Play
+            </h2>
+
+            <div style={{ marginBottom: '2rem' }}>
+              <h3 style={{ fontSize: '1.25rem', marginBottom: '0.75rem', color: '#00ff00' }}>🇪🇸 Cómo se juega</h3>
+              <p style={{ lineHeight: '1.8', opacity: 0.9, marginBottom: '1rem' }}>
+                En Grabli, hay un premio en juego por tiempo limitado.
+                Cualquier jugador puede reclamarlo con un clic, y mientras lo tenga, va acumulando segundos.
+              </p>
+              <p style={{ lineHeight: '1.8', opacity: 0.9, marginBottom: '1rem' }}>
+                Pero cuidado — otro jugador puede reclamarlo en cualquier momento y quitarte el control.
+                El contador se detiene para ti y empieza a correr para el nuevo dueño.
+              </p>
+              <p style={{ lineHeight: '1.8', opacity: 0.9 }}>
+                Cuando el tiempo total del juego termina, gana quien haya mantenido el premio más tiempo en total.
+              </p>
+              <p style={{ lineHeight: '1.8', opacity: 0.9, marginTop: '1rem', fontStyle: 'italic', color: '#00d4ff' }}>
+                Es un juego de reflejos, estrategia y oportunidad, donde cada segundo cuenta ⏳
+              </p>
+            </div>
+
+            <div>
+              <h3 style={{ fontSize: '1.25rem', marginBottom: '0.75rem', color: '#00ff00' }}>🇬🇧 How to Play</h3>
+              <p style={{ lineHeight: '1.8', opacity: 0.9, marginBottom: '1rem' }}>
+                In Grabli, a prize is live for a limited time.
+                Any player can claim it with a tap, and while they hold it, they accumulate seconds.
+              </p>
+              <p style={{ lineHeight: '1.8', opacity: 0.9, marginBottom: '1rem' }}>
+                But watch out — another player can claim it at any moment and take it away.
+                Your timer stops, theirs starts ticking.
+              </p>
+              <p style={{ lineHeight: '1.8', opacity: 0.9 }}>
+                When the total game time ends, the winner is the one who held the prize the longest.
+              </p>
+              <p style={{ lineHeight: '1.8', opacity: 0.9, marginTop: '1rem', fontStyle: 'italic', color: '#00d4ff' }}>
+                It&apos;s a game of timing, speed, and strategy — where every second counts ⏳
+              </p>
+            </div>
+
+            <button
+              onClick={() => setShowHowToPlay(false)}
+              style={{
+                marginTop: '2rem',
+                width: '100%',
+                padding: '1rem',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                border: 'none',
+                borderRadius: '12px',
+                color: 'white',
+                fontSize: '1.125rem',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+              }}
+            >
+              Got it! 🎯
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
