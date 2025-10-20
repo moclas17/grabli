@@ -269,7 +269,7 @@ export default function StatsPage() {
           }}>
             <div style={{ fontSize: 'clamp(1.5rem, 5vw, 2rem)', marginBottom: '0.25rem' }}>💰</div>
             <div style={{ fontSize: 'clamp(1rem, 3.5vw, 1.25rem)', fontWeight: 'bold', color: '#00ff00' }}>
-              {gameDetails?.prizeAmount ? (Number(gameDetails.prizeAmount) / 1e6).toFixed(2) : '0'} {gameDetails?.prizeCurrency || 'USD'}
+              {gameDetails?.prizeAmount ? (Number(gameDetails.prizeAmount) / 1e18).toLocaleString() : '0'} {gameDetails?.prizeCurrency || 'USD'}
             </div>
             <div style={{ fontSize: 'clamp(0.65rem, 2.5vw, 0.75rem)', opacity: 0.8, marginTop: '0.25rem' }}>
               Prize Value
