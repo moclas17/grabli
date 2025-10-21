@@ -13,6 +13,8 @@ import {
   useGameDetails,
   useGamePlayers,
   useFullLeaderboard,
+  useTokenDecimals,
+  formatTokenAmount,
 } from "../../lib/hooks/useGrabliContract";
 import styles from "../page.module.css";
 
@@ -39,6 +41,9 @@ export default function StatsPage() {
   const { gameDetails, isLoading: isLoadingDetails } = useGameDetails(currentGameId);
   const { players, isLoading: isLoadingPlayers } = useGamePlayers(currentGameId);
   const { leaderboard, isLoading: isLoadingLeaderboard } = useFullLeaderboard(currentGameId);
+
+  // Get token decimals for proper amount formatting
+  const { decimals: tokenDecimals } = useTokenDecimals(gameDetails?.prizeToken);
 
   // Calculate statistics from leaderboard
   const totalClaims = leaderboard.reduce((sum, player) => sum + Number(player.claimCount || 0), 0);
@@ -269,7 +274,7 @@ export default function StatsPage() {
           }}>
             <div style={{ fontSize: 'clamp(1.5rem, 5vw, 2rem)', marginBottom: '0.25rem' }}>💰</div>
             <div style={{ fontSize: 'clamp(1rem, 3.5vw, 1.25rem)', fontWeight: 'bold', color: '#00ff00' }}>
-              {gameDetails?.prizeAmount ? (Number(gameDetails.prizeAmount) / 1e18).toLocaleString() : '0'} {gameDetails?.prizeCurrency || 'USD'}
+              {formatTokenAmount(gameDetails?.prizeAmount, tokenDecimals)} {gameDetails?.prizeCurrency || 'USD'}
             </div>
             <div style={{ fontSize: 'clamp(0.65rem, 2.5vw, 0.75rem)', opacity: 0.8, marginTop: '0.25rem' }}>
               Prize Value

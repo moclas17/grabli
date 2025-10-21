@@ -6,7 +6,11 @@ import { Wallet } from "@coinbase/onchainkit/wallet";
 import { useMiniKit } from "@coinbase/onchainkit/minikit";
 import {
   useGlobalStats,
+  useAllGamesDetails,
+  useTokenDecimals,
+  formatTokenAmount,
 } from "../../lib/hooks/useGrabliContract";
+import { Address as AddressType } from "viem";
 import styles from "../page.module.css";
 
 export default function GlobalStatsPage() {
@@ -27,6 +31,8 @@ export default function GlobalStatsPage() {
     totalTransactions,
     isLoading,
   } = useGlobalStats();
+
+  const { games, isLoading: isLoadingGames } = useAllGamesDetails();
 
   if (isLoading) {
     return (
@@ -209,6 +215,128 @@ export default function GlobalStatsPage() {
               Unique Players
             </div>
           </div>
+        </div>
+
+        {/* Games Table */}
+        <div style={{
+          width: '100%',
+          marginBottom: '1rem',
+          background: '#1a1a2e',
+          border: '3px solid #00d4ff',
+          borderRadius: '12px',
+          padding: 'clamp(0.75rem, 3vw, 1.5rem)',
+        }}>
+          <h2 style={{
+            fontSize: 'clamp(1rem, 4vw, 1.5rem)',
+            fontWeight: 'bold',
+            color: '#00d4ff',
+            marginBottom: '1rem',
+            textAlign: 'center',
+          }}>
+            🎮 All Games
+          </h2>
+
+          {isLoadingGames ? (
+            <div style={{ textAlign: 'center', padding: '1rem', opacity: 0.7 }}>
+              Loading games data...
+            </div>
+          ) : games.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '1rem', opacity: 0.7 }}>
+              No games found
+            </div>
+          ) : (
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{
+                width: '100%',
+                borderCollapse: 'collapse',
+                fontSize: 'clamp(0.7rem, 2.5vw, 0.875rem)',
+              }}>
+                <thead>
+                  <tr style={{
+                    background: 'rgba(0, 212, 255, 0.1)',
+                    borderBottom: '2px solid #00d4ff',
+                  }}>
+                    <th style={{ padding: 'clamp(0.5rem, 2vw, 0.75rem)', textAlign: 'left', color: '#00d4ff' }}>ID</th>
+                    <th style={{ padding: 'clamp(0.5rem, 2vw, 0.75rem)', textAlign: 'left', color: '#00d4ff' }}>Sponsor</th>
+                    <th style={{ padding: 'clamp(0.5rem, 2vw, 0.75rem)', textAlign: 'right', color: '#00d4ff' }}>Prize</th>
+                    <th style={{ padding: 'clamp(0.5rem, 2vw, 0.75rem)', textAlign: 'center', color: '#00d4ff' }}>Users</th>
+                    <th style={{ padding: 'clamp(0.5rem, 2vw, 0.75rem)', textAlign: 'center', color: '#00d4ff' }}>TX</th>
+                    <th style={{ padding: 'clamp(0.5rem, 2vw, 0.75rem)', textAlign: 'center', color: '#00d4ff' }}>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {games.map((game) => {
+                    const PrizeDisplay = ({ amount, tokenAddress, currency }: { amount: bigint, tokenAddress: AddressType, currency: string }) => {
+                      const { decimals } = useTokenDecimals(tokenAddress);
+                      return (
+                        <span style={{ color: '#00ff00', fontWeight: 'bold' }}>
+                          {formatTokenAmount(amount, decimals)} {currency}
+                        </span>
+                      );
+                    };
+
+                    return (
+                      <tr key={game.gameId.toString()} style={{
+                        borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+                        transition: 'background 0.2s',
+                      }}>
+                        <td style={{ padding: 'clamp(0.5rem, 2vw, 0.75rem)' }}>
+                          <span style={{
+                            color: '#ffd700',
+                            fontWeight: 'bold',
+                            fontSize: 'clamp(0.75rem, 2.5vw, 0.875rem)',
+                          }}>
+                            #{game.gameId.toString()}
+                          </span>
+                        </td>
+                        <td style={{ padding: 'clamp(0.5rem, 2vw, 0.75rem)' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                            <span style={{ fontWeight: 'bold', color: '#fff' }}>{game.sponsorName}</span>
+                            <span style={{
+                              fontFamily: 'monospace',
+                              fontSize: 'clamp(0.6rem, 2vw, 0.7rem)',
+                              opacity: 0.6
+                            }}>
+                              {game.sponsor.slice(0, 6)}...{game.sponsor.slice(-4)}
+                            </span>
+                          </div>
+                        </td>
+                        <td style={{ padding: 'clamp(0.5rem, 2vw, 0.75rem)', textAlign: 'right' }}>
+                          <PrizeDisplay
+                            amount={game.prizeAmount}
+                            tokenAddress={game.prizeToken}
+                            currency={game.prizeCurrency}
+                          />
+                        </td>
+                        <td style={{ padding: 'clamp(0.5rem, 2vw, 0.75rem)', textAlign: 'center' }}>
+                          <span style={{ color: '#4ecdc4', fontWeight: 'bold' }}>
+                            {game.playerCount}
+                          </span>
+                        </td>
+                        <td style={{ padding: 'clamp(0.5rem, 2vw, 0.75rem)', textAlign: 'center' }}>
+                          <span style={{ color: '#ff6b6b', fontWeight: 'bold' }}>
+                            {game.transactionCount}
+                          </span>
+                        </td>
+                        <td style={{ padding: 'clamp(0.5rem, 2vw, 0.75rem)', textAlign: 'center' }}>
+                          <span style={{
+                            padding: '0.25rem 0.5rem',
+                            borderRadius: '4px',
+                            fontSize: 'clamp(0.6rem, 2vw, 0.7rem)',
+                            fontWeight: 'bold',
+                            background: game.finished ? 'rgba(255, 215, 0, 0.2)' : 'rgba(0, 255, 0, 0.2)',
+                            color: game.finished ? '#ffd700' : '#00ff00',
+                          }}>
+                            {game.finished ? '✓ Done' : '● Active'}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
 
         {/* Navigation Links */}

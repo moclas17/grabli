@@ -366,6 +366,13 @@ const ERC20_ABI = [
     name: 'allowance',
     outputs: [{ name: '', type: 'uint256' }],
     type: 'function'
+  },
+  {
+    constant: true,
+    inputs: [],
+    name: 'decimals',
+    outputs: [{ name: '', type: 'uint8' }],
+    type: 'function'
   }
 ] as const;
 
@@ -587,6 +594,190 @@ export function useGlobalStats() {
     isLoading: isLoadingStates || isLoadingPlayers || isLoadingStats,
     isError: isErrorStates || isErrorPlayers,
   };
+}
+
+// Hook to get detailed information for all games (for games table)
+export function useAllGamesDetails() {
+  const { gameCount } = useGameCount();
+
+  // Get all game IDs
+  const gameIds = Array.from({ length: Number(gameCount) }, (_, i) => BigInt(i));
+
+  // Fetch all game details
+  const gameDetailsContracts = gameIds.map((gameId) => ({
+    address: getGrabliAddress(base.id),
+    abi: GRABLI_ABI,
+    functionName: 'getGameDetails' as const,
+    args: [gameId] as const,
+    chainId: base.id,
+  }));
+
+  // Fetch all game players
+  const gamePlayersContracts = gameIds.map((gameId) => ({
+    address: getGrabliAddress(base.id),
+    abi: GRABLI_ABI,
+    functionName: 'getGamePlayers' as const,
+    args: [gameId] as const,
+    chainId: base.id,
+  }));
+
+  const { data: gameDetailsData, isError: isErrorDetails, isLoading: isLoadingDetails } = useReadContracts({
+    contracts: gameDetailsContracts,
+    query: {
+      enabled: gameIds.length > 0,
+    },
+  });
+
+  const { data: gamePlayersData, isError: isErrorPlayers, isLoading: isLoadingPlayers } = useReadContracts({
+    contracts: gamePlayersContracts,
+    query: {
+      enabled: gameIds.length > 0,
+    },
+  });
+
+  // Process game data and count transactions per game
+  const playersByGame: { gameId: bigint; players: Address[] }[] = [];
+
+  if (gamePlayersData) {
+    gamePlayersData.forEach((result, index) => {
+      if (result?.status === 'success' && result.result) {
+        const players = result.result as Address[];
+        playersByGame.push({ gameId: gameIds[index], players });
+      }
+    });
+  }
+
+  // Get player stats for all players to count transactions per game
+  const playerStatsContracts: {
+    address: Address;
+    abi: typeof GRABLI_ABI;
+    functionName: 'getPlayerStats';
+    args: readonly [bigint, Address];
+    chainId: number;
+    gameId: bigint;
+  }[] = [];
+
+  playersByGame.forEach(({ gameId, players }) => {
+    players.forEach((player) => {
+      playerStatsContracts.push({
+        address: getGrabliAddress(base.id),
+        abi: GRABLI_ABI,
+        functionName: 'getPlayerStats' as const,
+        args: [gameId, player] as const,
+        chainId: base.id,
+        gameId,
+      });
+    });
+  });
+
+  const { data: playerStatsData, isLoading: isLoadingStats } = useReadContracts({
+    contracts: playerStatsContracts.map(({ gameId: _gameId, ...contract }) => contract),
+    query: {
+      enabled: playerStatsContracts.length > 0,
+    },
+  });
+
+  // Build games array with all details
+  const games: {
+    gameId: bigint;
+    sponsor: Address;
+    sponsorName: string;
+    prizeAmount: bigint;
+    prizeToken: Address;
+    prizeCurrency: string;
+    playerCount: number;
+    transactionCount: number;
+    finished: boolean;
+  }[] = [];
+
+  if (gameDetailsData && gamePlayersData) {
+    gameDetailsData.forEach((result, index) => {
+      if (result?.status === 'success' && result.result) {
+        const details = result.result as [
+          string, // prizeTitle
+          string, // prizeCurrency
+          string, // prizeDescription
+          string, // sponsorName
+          string, // sponsorUrl
+          bigint, // startAt
+          bigint, // endAt
+          boolean, // finished
+          Address, // prizeToken
+          bigint, // prizeAmount
+          Address  // sponsor
+        ];
+
+        const gameId = gameIds[index];
+        const players = (gamePlayersData[index]?.status === 'success' && gamePlayersData[index].result)
+          ? (gamePlayersData[index].result as Address[])
+          : [];
+
+        // Count transactions for this game
+        let transactionCount = 0;
+        if (playerStatsData) {
+          playerStatsContracts.forEach((contract, contractIndex) => {
+            if (contract.gameId === gameId) {
+              const statsResult = playerStatsData[contractIndex];
+              if (statsResult?.status === 'success' && statsResult.result) {
+                const stats = statsResult.result as [bigint, bigint, bigint];
+                transactionCount += Number(stats[2]); // claimCount
+              }
+            }
+          });
+        }
+
+        games.push({
+          gameId,
+          sponsor: details[10],
+          sponsorName: details[3],
+          prizeAmount: details[9],
+          prizeToken: details[8],
+          prizeCurrency: details[1],
+          playerCount: players.length,
+          transactionCount,
+          finished: details[7],
+        });
+      }
+    });
+  }
+
+  return {
+    games,
+    isLoading: isLoadingDetails || isLoadingPlayers || isLoadingStats,
+    isError: isErrorDetails || isErrorPlayers,
+  };
+}
+
+// Hook to get ERC20 token decimals
+export function useTokenDecimals(tokenAddress?: Address) {
+  const { data, isError, isLoading } = useReadContract({
+    address: tokenAddress,
+    abi: ERC20_ABI,
+    functionName: 'decimals',
+    chainId: base.id,
+    query: {
+      enabled: !!tokenAddress && tokenAddress !== '0x0000000000000000000000000000000000000000',
+    },
+  });
+
+  return {
+    decimals: data as number | undefined,
+    isLoading,
+    isError,
+  };
+}
+
+// Helper function to format token amount with correct decimals
+export function formatTokenAmount(amount: bigint | undefined, decimals: number | undefined): string {
+  if (!amount || decimals === undefined) return '0';
+
+  const divisor = Math.pow(10, decimals);
+  const formattedAmount = Number(amount) / divisor;
+
+  return formattedAmount.toLocaleString(undefined, {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: decimals > 6 ? 2 : decimals,
+  });
 }
 
 // Hook to get full leaderboard with claim counts

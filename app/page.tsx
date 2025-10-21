@@ -16,6 +16,8 @@ import {
   useLeaderboard,
   useClaim,
   usePlayerStats,
+  useTokenDecimals,
+  formatTokenAmount,
 } from "../lib/hooks/useGrabliContract";
 
 export default function Home() {
@@ -41,6 +43,9 @@ export default function Home() {
   const { leaderboard, isLoading: isLoadingLeaderboard, refetch: refetchLeaderboard } = useLeaderboard(currentGameId);
   const { playerStats, refetch: refetchPlayerStats } = usePlayerStats(userAddress, currentGameId);
   const { claim, isPending, isConfirming, isSuccess, error } = useClaim();
+
+  // Get token decimals for proper amount formatting
+  const { decimals: tokenDecimals } = useTokenDecimals(gameDetails?.prizeToken);
 
   useEffect(() => {
     if (!isMiniAppReady) {
@@ -434,7 +439,7 @@ export default function Home() {
               <div style={{ marginTop: '1rem', padding: '0.75rem', background: 'rgba(255,215,0,0.2)', borderRadius: '8px', border: '2px solid #FFD700' }}>
                 <div style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>🎊 Congratulations! 🎊</div>
                 <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>
-                  Prize: {gameDetails.prizeAmount ? (Number(gameDetails.prizeAmount) / 1e18).toLocaleString() : '0'} {gameDetails.prizeCurrency || 'USD'}
+                  Prize: {formatTokenAmount(gameDetails.prizeAmount, tokenDecimals)} {gameDetails.prizeCurrency || 'USD'}
                 </div>
                 <div style={{ fontSize: '0.75rem', marginTop: '0.5rem', opacity: 0.8 }}>
                   Contact the sponsor to claim your prize
@@ -461,7 +466,7 @@ export default function Home() {
           <div className={styles.prizeIcon}>🏆</div>
           <h1 className={styles.prizeTitle}>{gameDetails.prizeTitle || 'Prize'}</h1>
           <div className={styles.prizeValue}>
-            {gameDetails.prizeAmount ? (Number(gameDetails.prizeAmount) / 1e18).toLocaleString() : '0'} {gameDetails.prizeCurrency || 'USD'}
+            {formatTokenAmount(gameDetails.prizeAmount, tokenDecimals)} {gameDetails.prizeCurrency || 'USD'}
           </div>
           <p className={styles.prizeDescription}>
             {gameDetails.prizeDescription || 'Winner takes all!'}
