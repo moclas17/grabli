@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, memo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Wallet } from "@coinbase/onchainkit/wallet";
@@ -8,6 +8,7 @@ import { useMiniKit } from "@coinbase/onchainkit/minikit";
 import { useAccount, useSwitchChain, useChainId } from "wagmi";
 import { base } from "viem/chains";
 import styles from "./page.module.css";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import {
   useActiveGames,
   useGameCount,
@@ -19,6 +20,34 @@ import {
   useTokenDecimals,
   formatTokenAmount,
 } from "../lib/hooks/useGrabliContract";
+
+// Component to display player name with Basename support
+// MUST be outside the Home component to avoid React hook errors
+// Memoized to prevent unnecessary re-renders during wallet reconnection
+const PlayerName = memo(function PlayerName({ address }: { address: string }) {
+  // Validate address before rendering
+  if (!address || address === '0x0000000000000000000000000000000000000000') {
+    return <span>Unknown</span>;
+  }
+
+  return (
+    <div style={{
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: '0.5rem',
+    }}>
+      <Avatar
+        address={address as `0x${string}`}
+        chain={base}
+        className={styles.playerAvatar}
+      />
+      <Name
+        address={address as `0x${string}`}
+        chain={base}
+      />
+    </div>
+  );
+});
 
 export default function Home() {
   const { setMiniAppReady, isMiniAppReady } = useMiniKit();
@@ -106,25 +135,6 @@ export default function Home() {
     const secs = total % 60;
     return `${hours}h ${mins}m ${secs}s`;
   };
-
-  // Component to display player name with Basename support
-  const PlayerName = ({ address }: { address: string }) => (
-    <div style={{
-      display: 'inline-flex',
-      alignItems: 'center',
-      gap: '0.5rem',
-    }}>
-      <Avatar
-        address={address as `0x${string}`}
-        chain={base}
-        className={styles.playerAvatar}
-      />
-      <Name
-        address={address as `0x${string}`}
-        chain={base}
-      />
-    </div>
-  );
 
   const handleClaim = () => {
     if (!userAddress) {
@@ -500,7 +510,15 @@ export default function Home() {
           <div className={styles.holderLabel}>Current Holder</div>
           <div className={styles.holderAddress}>
             {hasHolder ? (
-              <PlayerName address={gameState.holder} />
+              <ErrorBoundary
+                fallback={
+                  <span style={{ fontFamily: 'monospace', fontSize: '0.875rem' }}>
+                    {gameState.holder.slice(0, 6)}...{gameState.holder.slice(-4)}
+                  </span>
+                }
+              >
+                <PlayerName address={gameState.holder} />
+              </ErrorBoundary>
             ) : (
               'No one yet'
             )}
@@ -603,7 +621,15 @@ export default function Home() {
                   <div key={player.address} className={styles.leaderboardItem}>
                     <span className={styles.rank}>#{index + 1}</span>
                     <span className={styles.playerAddress}>
-                      <PlayerName address={player.address} />
+                      <ErrorBoundary
+                        fallback={
+                          <span style={{ fontFamily: 'monospace', fontSize: '0.875rem' }}>
+                            {player.address.slice(0, 6)}...{player.address.slice(-4)}
+                          </span>
+                        }
+                      >
+                        <PlayerName address={player.address} />
+                      </ErrorBoundary>
                       {userAddress?.toLowerCase() === player.address.toLowerCase() && ' (You)'}
                       {isHolder && ' 👑'}
                     </span>
