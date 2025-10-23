@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Wallet } from "@coinbase/onchainkit/wallet";
 import { Name, Avatar } from "@coinbase/onchainkit/identity";
+import { Transaction, TransactionButton, TransactionStatus, TransactionStatusLabel, TransactionStatusAction } from "@coinbase/onchainkit/transaction";
 import { useMiniKit } from "@coinbase/onchainkit/minikit";
 import { useAccount, useSwitchChain, useChainId } from "wagmi";
 import { base } from "viem/chains";
@@ -15,11 +16,12 @@ import {
   useGameState,
   useGameDetails,
   useLeaderboard,
-  useClaim,
   usePlayerStats,
   useTokenDecimals,
   formatTokenAmount,
 } from "../lib/hooks/useGrabliContract";
+import { GRABLI_ABI, getGrabliAddress } from "../lib/contracts/grabli";
+import type { ContractFunctionParameters } from "viem";
 
 // Component to display player name with Basename support
 // MUST be outside the Home component to avoid React hook errors
@@ -74,7 +76,14 @@ export default function Home() {
   const { gameDetails, isLoading: isLoadingDetails } = useGameDetails(currentGameId);
   const { leaderboard, isLoading: isLoadingLeaderboard, refetch: refetchLeaderboard } = useLeaderboard(currentGameId);
   const { playerStats, refetch: refetchPlayerStats } = usePlayerStats(userAddress, currentGameId);
-  const { claim, isPending, isConfirming, isSuccess, error } = useClaim();
+
+  // Prepare claim transaction call for Transaction component
+  const claimContracts = [{
+    address: getGrabliAddress(base.id),
+    abi: GRABLI_ABI,
+    functionName: 'claim',
+    args: [currentGameId],
+  }] as unknown as ContractFunctionParameters[];
 
   // Get token decimals for proper amount formatting
   const { decimals: tokenDecimals } = useTokenDecimals(gameDetails?.prizeToken);
@@ -112,18 +121,6 @@ export default function Home() {
     return () => clearInterval(refreshInterval);
   }, [hasActiveGame, gameState, refetchState, refetchLeaderboard]);
 
-  // Refresh data after successful claim
-  useEffect(() => {
-    if (isSuccess) {
-      // Refresh immediately after successful claim
-      setTimeout(() => {
-        refetchState();
-        refetchLeaderboard();
-        refetchPlayerStats();
-      }, 2000);
-    }
-  }, [isSuccess, refetchState, refetchLeaderboard, refetchPlayerStats]);
-
   const formatTime = (ms: number) => {
     const hours = Math.floor(ms / 3600000);
     const minutes = Math.floor((ms % 3600000) / 60000);
@@ -139,17 +136,14 @@ export default function Home() {
     return `${hours}h ${mins}m ${secs}s`;
   };
 
-  const handleClaim = () => {
-    if (!userAddress) {
-      alert("Please connect your wallet first!");
-      return;
-    }
-    if (!hasActiveGame) {
-      alert("No active game found!");
-      return;
-    }
-    // This should only be called when already on Base network
-    claim(currentGameId);
+  // Callback for when transaction is successful
+  const handleTransactionSuccess = () => {
+    // Refresh data after successful claim
+    setTimeout(() => {
+      refetchState();
+      refetchLeaderboard();
+      refetchPlayerStats();
+    }, 2000);
   };
 
   const handleRefresh = () => {
@@ -574,7 +568,7 @@ export default function Home() {
           </div>
         )}
 
-        {/* Claim Button or Switch Network */}
+        {/* Claim Button with Sponsored Transaction (Paymaster) */}
         {userAddress && currentChainId !== base.id ? (
           <button
             className={styles.claimButton}
@@ -586,33 +580,34 @@ export default function Home() {
           >
             ⚠️ Switch to Base Network
           </button>
-        ) : (
-          <button
-            className={styles.claimButton}
-            onClick={handleClaim}
-            disabled={!isGameActive || isPending || isConfirming || !userAddress || isCurrentHolder}
-          >
-            {!userAddress
-              ? '🔗 Connect Wallet First'
-              : isCurrentHolder
-              ? '👑 You are the Current Holder!'
-              : isPending || isConfirming
-              ? '⏳ Processing...'
-              : isSuccess && isCurrentHolder
-              ? '✅ Claimed!'
-              : '🎯 GRAB IT NOW!'}
+        ) : !userAddress ? (
+          <button className={styles.claimButton} disabled>
+            🔗 Connect Wallet First
           </button>
-        )}
-
-        {error && (
-          <div style={{
-            color: 'red',
-            textAlign: 'center',
-            padding: '0.5rem',
-            fontSize: '0.875rem'
-          }}>
-            Error: {error.message}
-          </div>
+        ) : isCurrentHolder ? (
+          <button className={styles.claimButton} disabled>
+            👑 You are the Current Holder!
+          </button>
+        ) : !isGameActive ? (
+          <button className={styles.claimButton} disabled>
+            Game Not Active
+          </button>
+        ) : (
+          <Transaction
+            chainId={base.id}
+            calls={claimContracts}
+            onSuccess={handleTransactionSuccess}
+            isSponsored={true}
+          >
+            <TransactionButton
+              className={styles.claimButton}
+              text="🎯 GRAB IT NOW!"
+            />
+            <TransactionStatus>
+              <TransactionStatusLabel />
+              <TransactionStatusAction />
+            </TransactionStatus>
+          </Transaction>
         )}
 
         {/* Leaderboard */}
