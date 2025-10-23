@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Wallet } from "@coinbase/onchainkit/wallet";
 import { Name, Avatar } from "@coinbase/onchainkit/identity";
-import { Transaction, TransactionButton, TransactionStatus, TransactionStatusLabel, TransactionStatusAction } from "@coinbase/onchainkit/transaction";
+import { Transaction, TransactionButton, TransactionStatus, TransactionStatusLabel } from "@coinbase/onchainkit/transaction";
 import { useMiniKit } from "@coinbase/onchainkit/minikit";
 import { useAccount, useSwitchChain, useChainId } from "wagmi";
 import { base } from "viem/chains";
@@ -605,7 +605,6 @@ export default function Home() {
             />
             <TransactionStatus>
               <TransactionStatusLabel />
-              <TransactionStatusAction />
             </TransactionStatus>
           </Transaction>
         )}
