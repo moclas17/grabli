@@ -1,13 +1,17 @@
 "use client";
 import { ReactNode } from "react";
 import { base } from "wagmi/chains";
-import { http } from "wagmi";
 import { OnchainKitProvider } from "@coinbase/onchainkit";
 import "@coinbase/onchainkit/styles.css";
 
-// Use Coinbase Paymaster RPC for gasless transactions
-const paymasterUrl = process.env.NEXT_PUBLIC_PAYMASTER_RPC_URL ||
-  "https://api.developer.coinbase.com/rpc/v1/base/GjqgMTKz5XsNCWXPkWytAxsGbD6ANAh4";
+// Coinbase Paymaster & Bundler endpoint for gasless transactions
+const paymasterUrl = process.env.NEXT_PUBLIC_PAYMASTER_AND_BUNDLER_ENDPOINT;
+
+// Debug: Log Paymaster configuration
+console.log("🔧 Paymaster Configuration:");
+console.log("  - Env Variable Set:", !!process.env.NEXT_PUBLIC_PAYMASTER_AND_BUNDLER_ENDPOINT);
+console.log("  - Using Paymaster URL:", paymasterUrl);
+console.log("  - OnchainKit API Key:", process.env.NEXT_PUBLIC_ONCHAINKIT_API_KEY ? "✅ Set" : "❌ Missing");
 
 export function RootProvider({ children }: { children: ReactNode }) {
   return (
@@ -20,10 +24,10 @@ export function RootProvider({ children }: { children: ReactNode }) {
         },
         wallet: {
           display: "modal",
-          preference: "smartWalletOnly", // Enable Coinbase Smart Wallet with Paymaster (gasless transactions)
+          preference: "smartWalletOnly", // Enable Coinbase Smart Wallet for Paymaster support
         },
+        paymaster: paymasterUrl, // Coinbase Paymaster & Bundler endpoint for gasless transactions
       }}
-      rpcUrl={paymasterUrl} // Use Coinbase Paymaster RPC
       miniKit={{
         enabled: true,
         autoConnect: true,

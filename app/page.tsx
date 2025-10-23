@@ -87,7 +87,7 @@ export default function Home() {
 
   // Update countdown timer
   useEffect(() => {
-    if (!gameState) return;
+    if (!gameState?.endAt) return;
 
     const updateTimer = () => {
       const endTime = Number(gameState.endAt) * 1000;
@@ -98,7 +98,7 @@ export default function Home() {
     updateTimer();
     const interval = setInterval(updateTimer, 1000);
     return () => clearInterval(interval);
-  }, [gameState]);
+  }, [gameState?.endAt]); // Only re-run when endAt changes, not the entire gameState object
 
   // Auto-refresh game state every 10 seconds to update current holder's time
   useEffect(() => {
