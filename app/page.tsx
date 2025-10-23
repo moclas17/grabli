@@ -51,9 +51,12 @@ const PlayerName = memo(function PlayerName({ address }: { address: string }) {
 
 export default function Home() {
   const { setMiniAppReady, isMiniAppReady } = useMiniKit();
-  const { address: userAddress } = useAccount();
+  const { address: userAddress, chain } = useAccount();
   const chainId = useChainId();
   const { switchChain } = useSwitchChain();
+
+  // Use the chain from useAccount as it's more reliable during reconnection
+  const currentChainId = chain?.id || chainId;
   const [timeRemaining, setTimeRemaining] = useState(0);
   const [showHowToPlay, setShowHowToPlay] = useState(false);
 
@@ -310,7 +313,7 @@ export default function Home() {
               <br />
               Contract: {userAddress ? 'Connected' : 'Not connected'}
               <br />
-              Chain: {chainId}
+              Chain: {currentChainId}
             </div>
           </div>
         </div>
@@ -536,7 +539,7 @@ export default function Home() {
         )}
 
         {/* Wrong Network Warning */}
-        {userAddress && chainId !== base.id && (
+        {userAddress && currentChainId !== base.id && (
           <div style={{
             background: '#f59e0b',
             padding: '1rem',
@@ -545,7 +548,7 @@ export default function Home() {
             marginBottom: '1rem'
           }}>
             <div style={{ marginBottom: '0.5rem' }}>
-              ⚠️ Wrong Network! You&apos;re on chain {chainId}
+              ⚠️ Wrong Network! You&apos;re on chain {currentChainId}
             </div>
             <button
               onClick={() => switchChain({ chainId: base.id })}
@@ -569,11 +572,11 @@ export default function Home() {
         <button
           className={styles.claimButton}
           onClick={handleClaim}
-          disabled={!isGameActive || isPending || isConfirming || !userAddress || chainId !== base.id || isCurrentHolder}
+          disabled={!isGameActive || isPending || isConfirming || !userAddress || currentChainId !== base.id || isCurrentHolder}
         >
           {!userAddress
             ? '🔗 Connect Wallet First'
-            : chainId !== base.id
+            : currentChainId !== base.id
             ? '⚠️ Wrong Network'
             : isCurrentHolder
             ? '👑 You are the Current Holder!'
