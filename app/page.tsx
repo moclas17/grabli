@@ -622,37 +622,93 @@ export default function Home() {
                 No players yet. Be the first to grab!
               </div>
             ) : (
-              leaderboard.slice(0, 10).map((player, index) => {
-                // Check if this player is the current holder
-                const isHolder = gameState.holder &&
-                  gameState.holder.toLowerCase() === player.address.toLowerCase();
+              <>
+                {leaderboard.slice(0, 10).map((player, index) => {
+                  // Check if this player is the current holder
+                  const isHolder = gameState.holder &&
+                    gameState.holder.toLowerCase() === player.address.toLowerCase();
 
-                // The leaderboard already includes live time from the contract
-                // so we just display it as-is
-                const displaySeconds = player.totalSeconds;
+                  // The leaderboard already includes live time from the contract
+                  // so we just display it as-is
+                  const displaySeconds = player.totalSeconds;
 
-                return (
-                  <div key={player.address} className={styles.leaderboardItem}>
-                    <span className={styles.rank}>#{index + 1}</span>
-                    <span className={styles.playerAddress}>
-                      <ErrorBoundary
-                        fallback={
-                          <span style={{ fontFamily: 'monospace', fontSize: '0.875rem' }}>
-                            {player.address.slice(0, 6)}...{player.address.slice(-4)}
-                          </span>
-                        }
-                      >
-                        <PlayerName address={player.address} />
-                      </ErrorBoundary>
-                      {userAddress?.toLowerCase() === player.address.toLowerCase() && ' (You)'}
-                      {isHolder && ' 👑'}
-                    </span>
-                    <span className={styles.playerScore}>
-                      {formatSeconds(displaySeconds)}
-                    </span>
-                  </div>
-                );
-              })
+                  return (
+                    <div key={player.address} className={styles.leaderboardItem}>
+                      <span className={styles.rank}>#{index + 1}</span>
+                      <span className={styles.playerAddress}>
+                        <ErrorBoundary
+                          fallback={
+                            <span style={{ fontFamily: 'monospace', fontSize: '0.875rem' }}>
+                              {player.address.slice(0, 6)}...{player.address.slice(-4)}
+                            </span>
+                          }
+                        >
+                          <PlayerName address={player.address} />
+                        </ErrorBoundary>
+                        {userAddress?.toLowerCase() === player.address.toLowerCase() && ' (You)'}
+                        {isHolder && ' 👑'}
+                      </span>
+                      <span className={styles.playerScore}>
+                        {formatSeconds(displaySeconds)}
+                      </span>
+                    </div>
+                  );
+                })}
+
+                {/* Show current holder if not in top 10 */}
+                {(() => {
+                  if (!gameState.holder) return null;
+
+                  // Find if holder is in top 10
+                  const holderInTop10 = leaderboard.slice(0, 10).some(
+                    player => player.address.toLowerCase() === gameState.holder.toLowerCase()
+                  );
+
+                  // If holder is not in top 10, find their position in full leaderboard
+                  if (!holderInTop10) {
+                    const holderIndex = leaderboard.findIndex(
+                      player => player.address.toLowerCase() === gameState.holder.toLowerCase()
+                    );
+
+                    if (holderIndex >= 10) {
+                      const holderData = leaderboard[holderIndex];
+                      return (
+                        <>
+                          <div style={{
+                            padding: '0.5rem 0',
+                            textAlign: 'center',
+                            color: '#888',
+                            fontSize: '0.875rem'
+                          }}>
+                            ...
+                          </div>
+                          <div key={holderData.address} className={styles.leaderboardItem}>
+                            <span className={styles.rank}>#{holderIndex + 1}</span>
+                            <span className={styles.playerAddress}>
+                              <ErrorBoundary
+                                fallback={
+                                  <span style={{ fontFamily: 'monospace', fontSize: '0.875rem' }}>
+                                    {holderData.address.slice(0, 6)}...{holderData.address.slice(-4)}
+                                  </span>
+                                }
+                              >
+                                <PlayerName address={holderData.address} />
+                              </ErrorBoundary>
+                              {userAddress?.toLowerCase() === holderData.address.toLowerCase() && ' (You)'}
+                              {' 👑'}
+                            </span>
+                            <span className={styles.playerScore}>
+                              {formatSeconds(holderData.totalSeconds)}
+                            </span>
+                          </div>
+                        </>
+                      );
+                    }
+                  }
+
+                  return null;
+                })()}
+              </>
             )}
           </div>
         </div>
