@@ -85,3 +85,10 @@
   font-family: 'Source Code Pro', monospace !important;
   font-size: 0.75rem !important;
 }
+
+/* Hide OnchainKit Transaction "View Transaction" button */
+[class*="ock-transaction-status-action"],
+[class*="TransactionStatusAction"] {
+  display: none !important;
+}
+
