@@ -195,7 +195,8 @@ export function useClaim() {
       abi: GRABLI_ABI,
       functionName: 'claim',
       args: [gameId],
-      chainId: base.id,
+      // Don't specify chainId - let it use the current chain from wallet
+      // This allows the transaction to work after switching chains
     });
   };
 

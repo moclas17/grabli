@@ -148,6 +148,7 @@ export default function Home() {
       alert("No active game found!");
       return;
     }
+    // This should only be called when already on Base network
     claim(currentGameId);
   };
 
@@ -466,7 +467,24 @@ export default function Home() {
         )}
 
         {/* Prize Display with Sponsor Ribbon */}
-        <div className={styles.prizeSection}>
+        <div className={styles.prizeSection} style={{ position: 'relative' }}>
+          {/* Game ID Badge - Top Left Corner */}
+          <div style={{
+            position: 'absolute',
+            top: '0.75rem',
+            left: '0.75rem',
+            padding: '0.25rem 0.75rem',
+            background: 'rgba(0, 0, 0, 0.3)',
+            border: '1px solid rgba(255, 255, 255, 0.3)',
+            borderRadius: '8px',
+            fontSize: '0.75rem',
+            color: 'white',
+            fontWeight: 'bold',
+            zIndex: 1
+          }}>
+            Game #{currentGameId.toString()}
+          </div>
+
           {/* Sponsor Ribbon */}
           <a
             href={gameDetails.sponsorUrl}
@@ -476,26 +494,14 @@ export default function Home() {
             data-text={gameDetails.sponsorName}
           />
 
-          <div className={styles.prizeIcon}>🏆</div>
           <h1 className={styles.prizeTitle}>{gameDetails.prizeTitle || 'Prize'}</h1>
+          <div className={styles.prizeIcon}>🏆</div>
           <div className={styles.prizeValue}>
             {formatTokenAmount(gameDetails.prizeAmount, tokenDecimals)} {gameDetails.prizeCurrency || 'USD'}
           </div>
           <p className={styles.prizeDescription}>
             {gameDetails.prizeDescription || 'Winner takes all!'}
           </p>
-          {/* Game ID Badge */}
-          <div style={{
-            marginTop: '0.5rem',
-            padding: '0.25rem 0.75rem',
-            background: 'rgba(100, 200, 100, 0.2)',
-            border: '1px solid rgba(100, 200, 100, 0.5)',
-            borderRadius: '12px',
-            fontSize: '0.75rem',
-            display: 'inline-block'
-          }}>
-            Game #{currentGameId.toString()}
-          </div>
         </div>
 
         {/* Timer */}
@@ -568,24 +574,35 @@ export default function Home() {
           </div>
         )}
 
-        {/* Claim Button */}
-        <button
-          className={styles.claimButton}
-          onClick={handleClaim}
-          disabled={!isGameActive || isPending || isConfirming || !userAddress || currentChainId !== base.id || isCurrentHolder}
-        >
-          {!userAddress
-            ? '🔗 Connect Wallet First'
-            : currentChainId !== base.id
-            ? '⚠️ Wrong Network'
-            : isCurrentHolder
-            ? '👑 You are the Current Holder!'
-            : isPending || isConfirming
-            ? '⏳ Processing...'
-            : isSuccess && isCurrentHolder
-            ? '✅ Claimed!'
-            : '🎯 GRAB IT NOW!'}
-        </button>
+        {/* Claim Button or Switch Network */}
+        {userAddress && currentChainId !== base.id ? (
+          <button
+            className={styles.claimButton}
+            onClick={() => switchChain({ chainId: base.id })}
+            style={{
+              background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+              border: '3px solid #fbbf24',
+            }}
+          >
+            ⚠️ Switch to Base Network
+          </button>
+        ) : (
+          <button
+            className={styles.claimButton}
+            onClick={handleClaim}
+            disabled={!isGameActive || isPending || isConfirming || !userAddress || isCurrentHolder}
+          >
+            {!userAddress
+              ? '🔗 Connect Wallet First'
+              : isCurrentHolder
+              ? '👑 You are the Current Holder!'
+              : isPending || isConfirming
+              ? '⏳ Processing...'
+              : isSuccess && isCurrentHolder
+              ? '✅ Claimed!'
+              : '🎯 GRAB IT NOW!'}
+          </button>
+        )}
 
         {error && (
           <div style={{
