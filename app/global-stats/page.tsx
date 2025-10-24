@@ -1,5 +1,5 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Wallet } from "@coinbase/onchainkit/wallet";
@@ -11,6 +11,9 @@ import {
   formatTokenAmount,
 } from "../../lib/hooks/useGrabliContract";
 import { Address as AddressType } from "viem";
+import { usePublicClient } from 'wagmi';
+import { GRABLI_ABI, getGrabliAddress } from '../../lib/contracts/grabli';
+import { base } from 'viem/chains';
 import styles from "../page.module.css";
 
 export default function GlobalStatsPage() {
@@ -33,6 +36,99 @@ export default function GlobalStatsPage() {
   } = useGlobalStats();
 
   const { games, isLoading: isLoadingGames } = useAllGamesDetails();
+  const publicClient = usePublicClient({ chainId: base.id });
+
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [allUniqueWallets, setAllUniqueWallets] = useState<Map<string, number[]>>(new Map());
+  const [isLoadingWallets, setIsLoadingWallets] = useState(false);
+
+  // Load all unique wallets when component mounts
+  useEffect(() => {
+    const loadAllWallets = async () => {
+      if (!publicClient || games.length === 0 || allUniqueWallets.size > 0) return;
+
+      setIsLoadingWallets(true);
+      try {
+        const walletGamesMap = new Map<string, number[]>();
+
+        for (const game of games) {
+          const gameId = game.gameId;
+
+          try {
+            const players = await publicClient.readContract({
+              address: getGrabliAddress(base.id) as `0x${string}`,
+              abi: GRABLI_ABI,
+              functionName: 'getGamePlayers',
+              args: [gameId],
+            }) as string[];
+
+            players.forEach((playerAddress: string) => {
+              const lowerAddress = playerAddress.toLowerCase();
+              const gamesList = walletGamesMap.get(lowerAddress) || [];
+              gamesList.push(Number(gameId));
+              walletGamesMap.set(lowerAddress, gamesList);
+            });
+          } catch (error) {
+            console.error(`Error fetching players for game ${gameId}:`, error);
+          }
+        }
+
+        setAllUniqueWallets(walletGamesMap);
+      } catch (error) {
+        console.error('Error loading wallets:', error);
+      } finally {
+        setIsLoadingWallets(false);
+      }
+    };
+
+    if (!isLoadingWallets && allUniqueWallets.size === 0) {
+      loadAllWallets();
+    }
+  }, [publicClient, games.length, isLoadingWallets, allUniqueWallets.size]);
+
+  // Function to download CSV with all unique wallets from all games
+  const downloadAllPlayersCSV = () => {
+    if (allUniqueWallets.size === 0) {
+      alert('No wallets data available yet. Please wait...');
+      return;
+    }
+
+    setIsDownloading(true);
+    try {
+      // Create CSV with all unique wallets
+      const headers = ['Wallet Address', 'Games Played', 'Game IDs'];
+      const rows = Array.from(allUniqueWallets.entries()).map(([wallet, gameIds]) => [
+        wallet,
+        gameIds.length.toString(),
+        gameIds.join('; ')
+      ]);
+
+      const csvContent = [
+        headers.join(','),
+        ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+      ].join('\n');
+
+      // Download CSV
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+
+      link.setAttribute('href', url);
+      link.setAttribute('download', `grabli-all-players-${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      alert(`✓ Downloaded ${allUniqueWallets.size} unique wallets!`);
+    } catch (error) {
+      console.error('Error generating CSV:', error);
+      alert('Error generating CSV. Please try again.');
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -217,6 +313,32 @@ export default function GlobalStatsPage() {
           </div>
         </div>
 
+        {/* Download All Players CSV Button */}
+        <button
+          onClick={downloadAllPlayersCSV}
+          disabled={games.length === 0 || isDownloading}
+          style={{
+            width: '100%',
+            padding: '1rem',
+            background: (games.length === 0 || isDownloading) ? '#666' : '#00ff00',
+            border: '3px solid #ffffff',
+            borderRadius: '12px',
+            textAlign: 'center',
+            color: (games.length === 0 || isDownloading) ? '#aaa' : '#0f0f1e',
+            fontWeight: 'bold',
+            fontSize: 'clamp(0.875rem, 3.5vw, 1.125rem)',
+            transition: 'all 0.2s',
+            display: 'block',
+            cursor: (games.length === 0 || isDownloading) ? 'not-allowed' : 'pointer',
+            marginBottom: '1rem',
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em',
+            boxShadow: (games.length === 0 || isDownloading) ? 'none' : '0 4px 0 #008800, 0 4px 8px rgba(0, 255, 0, 0.3)',
+          }}
+        >
+          {isDownloading ? '⏳ Downloading...' : '📥 Download All Players Data (CSV)'}
+        </button>
+
         {/* Games Table */}
         <div style={{
           width: '100%',
@@ -335,6 +457,110 @@ export default function GlobalStatsPage() {
                   })}
                 </tbody>
               </table>
+            </div>
+          )}
+        </div>
+
+        {/* All Unique Wallets Section */}
+        <div style={{
+          width: '100%',
+          marginBottom: '1rem',
+          background: '#1a1a2e',
+          border: '3px solid #4ecdc4',
+          borderRadius: '12px',
+          padding: 'clamp(0.75rem, 3vw, 1.5rem)',
+        }}>
+          <h2 style={{
+            fontSize: 'clamp(1rem, 4vw, 1.5rem)',
+            fontWeight: 'bold',
+            color: '#4ecdc4',
+            marginBottom: '1rem',
+            textAlign: 'center',
+          }}>
+            👥 All Unique Players ({allUniqueWallets.size})
+          </h2>
+
+          {isLoadingWallets ? (
+            <div style={{ textAlign: 'center', padding: '1rem', opacity: 0.7 }}>
+              Loading wallets...
+            </div>
+          ) : allUniqueWallets.size === 0 ? (
+            <div style={{ textAlign: 'center', padding: '1rem', opacity: 0.7 }}>
+              No players found
+            </div>
+          ) : (
+            <div style={{
+              maxHeight: '400px',
+              overflowY: 'auto',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.5rem',
+            }}>
+              {Array.from(allUniqueWallets.entries()).map(([wallet, gameIds], index) => (
+                <div
+                  key={wallet}
+                  style={{
+                    padding: 'clamp(0.5rem, 2vw, 0.75rem)',
+                    background: '#0f0f1e',
+                    border: '2px solid #1a1a2e',
+                    borderRadius: '8px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    transition: 'all 0.2s',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = '#1a1a2e';
+                    e.currentTarget.style.borderColor = '#4ecdc4';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = '#0f0f1e';
+                    e.currentTarget.style.borderColor = '#1a1a2e';
+                  }}
+                >
+                  <div style={{
+                    fontWeight: 'bold',
+                    color: '#888',
+                    minWidth: 'clamp(1.5rem, 4vw, 2rem)',
+                    fontSize: 'clamp(0.7rem, 2.5vw, 0.875rem)',
+                  }}>
+                    #{index + 1}
+                  </div>
+                  <div style={{
+                    flex: 1,
+                    fontFamily: 'monospace',
+                    fontSize: 'clamp(0.7rem, 2.5vw, 0.875rem)',
+                    color: '#c0c0c0',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}>
+                    {wallet}
+                  </div>
+                  <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'flex-end',
+                    gap: '0.25rem',
+                  }}>
+                    <span style={{
+                      fontWeight: 'bold',
+                      color: '#4ecdc4',
+                      fontSize: 'clamp(0.75rem, 3vw, 0.875rem)',
+                      whiteSpace: 'nowrap',
+                    }}>
+                      {gameIds.length} {gameIds.length === 1 ? 'game' : 'games'}
+                    </span>
+                    <span style={{
+                      fontSize: 'clamp(0.6rem, 2vw, 0.65rem)',
+                      color: '#666',
+                      whiteSpace: 'nowrap',
+                    }}>
+                      Games: {gameIds.join(', ')}
+                    </span>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>

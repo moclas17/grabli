@@ -393,3 +393,65 @@
   border-radius: 50%;
 }
 
+/* Floating Social Buttons - Fixed to right side */
+.floatingSocialButtons {
+  position: fixed;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  z-index: 100;
+}
+
+.floatingButton {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem;
+  border-radius: 0;
+  border: none;
+  border-left: 3px solid #ffffff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  box-shadow:
+    -4px 0 0 rgba(0, 0, 0, 0.3),
+    -4px 0 12px rgba(0, 0, 0, 0.5);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow:
+      -4px 0 0 rgba(0, 0, 0, 0.3),
+      -4px 0 12px rgba(0, 0, 0, 0.5);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow:
+      -6px 0 0 rgba(0, 0, 0, 0.3),
+      -6px 0 16px rgba(0, 0, 0, 0.6),
+      0 0 20px rgba(255, 255, 255, 0.3);
+  }
+}
+
+.floatingButton:hover {
+  transform: translateX(-5px) scale(1.05);
+  box-shadow:
+    -6px 0 0 rgba(0, 0, 0, 0.3),
+    -6px 0 16px rgba(0, 0, 0, 0.6),
+    0 0 25px rgba(255, 255, 255, 0.5);
+}
+
+.floatingButton:active {
+  transform: translateX(0) scale(0.98);
+  box-shadow:
+    -2px 0 0 rgba(0, 0, 0, 0.3),
+    -2px 0 8px rgba(0, 0, 0, 0.4);
+}
+

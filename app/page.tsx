@@ -851,6 +851,50 @@ export default function Home() {
           </div>
         </div>
       )}
+
+      {/* Floating Social Share Buttons - Only visible when user is holder */}
+      {isCurrentHolder && (
+        <div className={styles.floatingSocialButtons}>
+          <a
+            href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
+              `🎯 I'm currently holding the prize in Grabli Game #${activeGameId}! Can you grab it from me?\n\nSponsored by: ${gameDetails?.sponsorName || 'Grabli'}\n${gameDetails?.sponsorUrl ? `🔗 ${gameDetails.sponsorUrl}\n` : ''}\nPlay now at ${process.env.NEXT_PUBLIC_URL || 'https://grabli.vercel.app'}`
+            )}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.floatingButton}
+            style={{ background: '#000000', color: '#ffffff' }}
+            title="Share on X"
+          >
+            𝕏
+          </a>
+
+          <a
+            href={`https://warpcast.com/~/compose?text=${encodeURIComponent(
+              `🎯 I'm currently holding the prize in Grabli Game #${activeGameId}! Can you grab it from me?\n\nSponsored by: ${gameDetails?.sponsorName || 'Grabli'}\n${gameDetails?.sponsorUrl ? `🔗 ${gameDetails.sponsorUrl}\n` : ''}\nPlay now at ${process.env.NEXT_PUBLIC_URL || 'https://grabli.vercel.app'}`
+            )}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.floatingButton}
+            style={{ background: '#000000' }}
+            title="Share on Farcaster"
+          >
+            🟣
+          </a>
+
+          <a
+            href={`https://www.base.org/share?text=${encodeURIComponent(
+              `🎯 I'm currently holding the prize in Grabli Game #${activeGameId}!\n\nSponsored by: ${gameDetails?.sponsorName || 'Grabli'}\n${gameDetails?.sponsorUrl ? `🔗 ${gameDetails.sponsorUrl}` : ''}`
+            )}&url=${encodeURIComponent(process.env.NEXT_PUBLIC_URL || 'https://grabli.vercel.app')}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.floatingButton}
+            style={{ background: '#000000' }}
+            title="Share on Base"
+          >
+            🟦
+          </a>
+        </div>
+      )}
     </div>
   );
 }
