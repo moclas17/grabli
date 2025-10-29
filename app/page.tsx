@@ -23,6 +23,39 @@ import {
 import { GRABLI_ABI, getGrabliAddress } from "../lib/contracts/grabli";
 import type { ContractFunctionParameters } from "viem";
 
+// Utility function to render text with clickable links
+// Detects URLs in text and converts them to clickable links
+function renderTextWithLinks(text: string) {
+  // Regular expression to match URLs (http, https, or www)
+  const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+)/g;
+
+  const parts = text.split(urlRegex);
+
+  return parts.map((part, index) => {
+    // Check if this part is a URL
+    if (part.match(urlRegex)) {
+      // Add https:// if it's a www link
+      const href = part.startsWith('www.') ? `https://${part}` : part;
+      return (
+        <a
+          key={index}
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            color: '#00d4ff',
+            textDecoration: 'underline',
+            wordBreak: 'break-all'
+          }}
+        >
+          {part}
+        </a>
+      );
+    }
+    return part;
+  });
+}
+
 // Component to display player name with Basename support
 // MUST be outside the Home component to avoid React hook errors
 // Memoized to prevent unnecessary re-renders during wallet reconnection
@@ -494,7 +527,7 @@ export default function Home() {
             {formatTokenAmount(gameDetails.prizeAmount, tokenDecimals)} {gameDetails.prizeCurrency || 'USD'}
           </div>
           <p className={styles.prizeDescription}>
-            {gameDetails.prizeDescription || 'Winner takes all!'}
+            {renderTextWithLinks(gameDetails.prizeDescription || 'Winner takes all!')}
           </p>
         </div>
 
