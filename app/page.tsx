@@ -890,7 +890,7 @@ export default function Home() {
         <div className={styles.floatingSocialButtons}>
           <a
             href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
-              `🎯 I'm currently holding the prize in Grabli Game #${activeGameId}! Can you grab it from me?\n\nSponsored by: ${gameDetails?.sponsorName || 'Grabli'}\n${gameDetails?.sponsorUrl ? `🔗 ${gameDetails.sponsorUrl}\n` : ''}\nPlay now at ${process.env.NEXT_PUBLIC_URL || 'https://grabli.vercel.app'}`
+              `🎯 I'm currently holding the prize in Grabli Game #${activeGameId}! Can you grab it from me?\n\nSponsored by @FlashTalkCoto\nNovember 12th Buenos Aires\n\nhttps://x.com/FlashTalkCoto/status/1983342194930143606?t=RnqtBFZcsG8RmSJMTVyAGw&s=19\n\nPlay now at ${process.env.NEXT_PUBLIC_URL || 'https://grabli.vercel.app'}`
             )}`}
             target="_blank"
             rel="noopener noreferrer"
@@ -903,7 +903,7 @@ export default function Home() {
 
           <a
             href={`https://warpcast.com/~/compose?text=${encodeURIComponent(
-              `🎯 I'm currently holding the prize in Grabli Game #${activeGameId}! Can you grab it from me?\n\nSponsored by: ${gameDetails?.sponsorName || 'Grabli'}\n${gameDetails?.sponsorUrl ? `🔗 ${gameDetails.sponsorUrl}\n` : ''}\nPlay now at ${process.env.NEXT_PUBLIC_URL || 'https://grabli.vercel.app'}`
+              `🎯 I'm currently holding the prize in Grabli Game #${activeGameId}! Can you grab it from me?\n\nSponsored by @FlashTalkCoto\nNovember 12th Buenos Aires\n\nhttps://x.com/FlashTalkCoto/status/1983342194930143606?t=RnqtBFZcsG8RmSJMTVyAGw&s=19\n\nPlay now at ${process.env.NEXT_PUBLIC_URL || 'https://grabli.vercel.app'}`
             )}`}
             target="_blank"
             rel="noopener noreferrer"
@@ -916,7 +916,7 @@ export default function Home() {
 
           <a
             href={`https://www.base.org/share?text=${encodeURIComponent(
-              `🎯 I'm currently holding the prize in Grabli Game #${activeGameId}!\n\nSponsored by: ${gameDetails?.sponsorName || 'Grabli'}\n${gameDetails?.sponsorUrl ? `🔗 ${gameDetails.sponsorUrl}` : ''}`
+              `🎯 I'm currently holding the prize in Grabli Game #${activeGameId}!\n\nSponsored by @FlashTalkCoto\nNovember 12th Buenos Aires\n\nhttps://x.com/FlashTalkCoto/status/1983342194930143606?t=RnqtBFZcsG8RmSJMTVyAGw&s=19`
             )}&url=${encodeURIComponent(process.env.NEXT_PUBLIC_URL || 'https://grabli.vercel.app')}`}
             target="_blank"
             rel="noopener noreferrer"
